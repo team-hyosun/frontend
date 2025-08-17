@@ -1,5 +1,4 @@
 import React, { useState } from 'react'
-import styled from '@emotion/styled'
 import { useNavigate } from 'react-router-dom'
 
 export default function MedicationCheck() {
@@ -27,129 +26,61 @@ export default function MedicationCheck() {
     alert('약 복용 정보가 저장되었습니다.')
     navigate('/')
   }
-  return (
-    <Container>
-      <Title>{titleText}</Title>
 
+  return (
+    <div className="px-7 py-10 w-full text-white flex flex-col items-center">
+      <h1 className="text-[2rem] font-bold text-primary-400 mb-10 text-center">
+        {titleText}
+      </h1>
       {[
         { key: 'morning', label: 'Q. 아침약을 복용하셨나요?' },
         { key: 'lunch', label: 'Q. 점심약을 복용하셨나요?' },
         { key: 'dinner', label: 'Q. 저녁약을 복용하셨나요?' },
       ].map(item => (
-        <Question key={item.key}>
+        <div key={item.key} className="w-full mb-7 text-[1.5rem] text-center">
           {item.label}
-          <OptionRow>
-            <OptionWrapper onClick={() => toggleAnswer(item.key, true)}>
-              <OptionBox selected={answers[item.key] === true} />
-              <OptionText>예</OptionText>
-            </OptionWrapper>
-            <OptionWrapper onClick={() => toggleAnswer(item.key, false)}>
-              <OptionBox selected={answers[item.key] === false} />
-              <OptionText>아니오</OptionText>
-            </OptionWrapper>
-          </OptionRow>
-        </Question>
+          <div className="flex justify-center gap-10 mt-4">
+            <div 
+              className="flex flex-col items-center cursor-pointer"
+              onClick={() => toggleAnswer(item.key, true)}
+            >
+              <div className={`w-7 h-7 border-2 border-white rounded-md ${
+                answers[item.key] === true ? 'bg-primary-500' : 'bg-transparent'
+              }`} />
+              <span className="mt-1.5 text-sm text-white">예</span>
+            </div>
+            <div 
+              className="flex flex-col items-center cursor-pointer"
+              onClick={() => toggleAnswer(item.key, false)}
+            >
+              <div className={`w-7 h-7 border-2 border-white rounded-md ${
+                answers[item.key] === false ? 'bg-primary-400' : 'bg-transparent'
+              }`} />
+              <span className="mt-1.5 text-sm text-white">아니오</span>
+            </div>
+          </div>
+        </div>
       ))}
 
-      <NoteLabel>
+      <div className="mt-10 text-base text-center leading-relaxed">
         특이사항이 있으셨나요?
         <br />
         (구토, 어지러움 등)
-      </NoteLabel>
-      <NoteInput
+      </div>
+      
+      <textarea
+        className="mt-2.5 w-[90%] h-[70px] bg-white-300 border-none rounded-lg text-base p-2.5 text-black resize-y"
         placeholder="내용을 입력해주세요"
         value={note}
         onChange={e => setNote(e.target.value)}
       />
-      <SaveButton onClick={handleSave}>저장하기</SaveButton>
-    </Container>
+
+      <button
+        className="mt-7 w-[90%] h-12 bg-primary-400 text-black text-lg font-bold border-none rounded-[20px] cursor-pointer hover:bg-primary-500 transition-colors"
+        onClick={handleSave}
+      >
+        저장하기
+      </button>
+    </div>
   )
 }
-
-const Container = styled.div`
-  background: #000;
-  padding: 40px 30px;
-  width: 100%;
-  color: #fff;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-`
-
-const Title = styled.div`
-  font-size: 28px;
-  font-weight: bold;
-  color: #00fa9a;
-  margin-bottom: 40px;
-  text-align: center;
-`
-
-const Question = styled.div`
-  width: 100%;
-  margin-bottom: 30px;
-  font-size: 20px;
-  text-align: center;
-`
-
-const OptionRow = styled.div`
-  display: flex;
-  justify-content: center;
-  gap: 40px;
-  margin-top: 15px;
-`
-
-const OptionWrapper = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  cursor: pointer;
-`
-
-const OptionBox = styled.div`
-  width: 28px;
-  height: 28px;
-  border: 2px solid #fff;
-  background: ${({ selected }) => (selected ? '#00d88a' : 'transparent')};
-  border-radius: 6px;
-`
-
-const OptionText = styled.span`
-  margin-top: 6px;
-  font-size: 14px;
-  color: #fff;
-`
-
-const NoteLabel = styled.div`
-  margin-top: 40px;
-  font-size: 16px;
-  text-align: center;
-  line-height: 1.4;
-`
-
-const NoteInput = styled.textarea`
-  margin-top: 10px;
-  width: 90%;
-  height: 70px;
-  background: #d9d9d9;
-  border: none;
-  border-radius: 8px;
-  font-size: 16px;
-  padding: 10px;
-  color: #000;
-  resize: vertical;
-`
-const SaveButton = styled.button`
-  margin-top: 30px;
-  width: 90%;
-  height: 50px;
-  background: #00fa9a;
-  color: #000;
-  font-size: 18px;
-  font-weight: bold;
-  border: none;
-  border-radius: 20px;
-  cursor: pointer;
-  &:hover {
-    background: #00d88a;
-  }
-`
