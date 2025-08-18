@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 export default function NotFoundPage() {
   return (
     <>
-      <div className="fixed inset-0 grid place-items-center p-6 text-center">
+      <div className="absolute inset-0 grid place-items-center p-6 text-center">
         <div>
           <h2 className="text-xl font-bold text-white">
             페이지를 찾을 수 없어요 (404)

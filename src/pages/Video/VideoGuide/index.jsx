@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import {
   AiOutlineCamera,
   AiOutlineCloudUpload,
@@ -13,15 +14,19 @@ import { useTodaySubmission } from '@/hooks/queries/video'
 import { useVideoStore } from '../../../stores/videoStore'
 
 export default function VideoGuide() {
-  const { data: canRegister, isLoading } = useTodaySubmission()
+  const { data: canRegister } = useTodaySubmission()
+
+  useEffect(() => {
+    console.log('canRegister changed:', canRegister)
+  }, [canRegister])
 
   return (
     <main className="flex flex-col py-6 gap-6">
       <PageHeader />
       <CaptureGuide />
       <WarningSection />
-      {!isLoading && canRegister === false && <AlreadySubmittedSection />}
-      <ActionButtons isDisabled={isLoading || !canRegister} />
+      {canRegister === false && <AlreadySubmittedSection />}
+      <ActionButtons isDisabled={!canRegister} />
     </main>
   )
 }

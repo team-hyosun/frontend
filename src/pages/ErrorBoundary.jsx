@@ -7,7 +7,7 @@ export default function ErrorBoundary() {
     : error?.message || 'Unknown error'
 
   return (
-    <div className="fixed inset-0 grid place-items-center text-center">
+    <div className="absolute inset-0 grid place-items-center text-center">
       <div>
         <h2 className="text-xl font-bold text-white">문제가 발생했어요</h2>
 

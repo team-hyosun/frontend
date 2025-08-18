@@ -1,21 +1,10 @@
 import { lazy } from 'react'
 
-import { Guard } from '../components/Guard'
-import { useVideoStore } from '../stores/videoStore'
+import { videoPreviewLoader } from './loaders'
 
 const VideoGuidePage = lazy(() => import('@/pages/Video/VideoGuide'))
 const VideoPreviewPage = lazy(() => import('@/pages/Video/VideoPreview'))
 const VideoResultPage = lazy(() => import('@/pages/Video/VideoResult'))
-
-const VideoPreviewGuard = () => {
-  const { getTodayVideoMeta } = useVideoStore()
-
-  return (
-    <Guard condition={!!getTodayVideoMeta()} redirectTo="/video">
-      <VideoPreviewPage />
-    </Guard>
-  )
-}
 
 const videoRouter = [
   {
@@ -24,11 +13,9 @@ const videoRouter = [
   },
   {
     path: 'preview',
-    element: (
-      <VideoPreviewGuard>
-        <VideoPreviewPage />,
-      </VideoPreviewGuard>
-    ),
+    element: <VideoPreviewPage />,
+
+    loader: videoPreviewLoader,
   },
   {
     path: 'result/:id',
