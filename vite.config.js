@@ -13,7 +13,7 @@ export default defineConfig({
       includeAssets: ['favicon.ico'],
       manifest: {
         name: 'Workout Video Recorder',
-        short_name: 'WorkoutRec',
+        short_name: 'ParkinCare',
         description: 'Record your workout videos with PWA functionality',
         theme_color: '#2563eb',
         background_color: '#ffffff',
@@ -23,12 +23,12 @@ export default defineConfig({
         start_url: '/',
         icons: [
           {
-            src: 'pwa-192x192.png',
+            src: 'logo-192x192.png',
             sizes: '192x192',
             type: 'image/png',
           },
           {
-            src: 'pwa-512x512.png',
+            src: 'logo-512x512.png',
             sizes: '512x512',
             type: 'image/png',
           },

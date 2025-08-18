@@ -1,10 +1,13 @@
 import { RouterProvider } from 'react-router-dom'
 import router from './routers/router'
+import QueryProvider from './components/QueryProvider'
 
 function App() {
   return (
     <>
-      <RouterProvider router={router} />
+      <QueryProvider>
+        <RouterProvider router={router} />
+      </QueryProvider>
     </>
   )
 }

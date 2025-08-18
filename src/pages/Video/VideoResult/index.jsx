@@ -1,18 +1,22 @@
-import { analyzeAngles } from '@/utils/angleClassifier'
 import { useState } from 'react'
 import { FaChartLine, FaWalking } from 'react-icons/fa'
 import { useNavigate } from 'react-router-dom'
 
+import { analyzeAngles } from '@/utils/angleClassifier'
+
 export default function VideoResult() {
   const [weekSegment] = useState('1')
+  // 양호
   // const leftAngle = 3.5
   // const rightAngle = 3.5
 
-  // const leftAngle = 10.1
-  // const rightAngle = 10.1
-
+  // 주의
   const leftAngle = 9.1
   const rightAngle = 9.1
+
+  // 경고
+  // const leftAngle = 10.1
+  // const rightAngle = 10.1
 
   const angles = analyzeAngles(leftAngle, rightAngle)
   const navigate = useNavigate()

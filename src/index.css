@@ -58,6 +58,7 @@
 @layer base {
     html {
         /* 1rem = 16px */
+        /* font-size: 100%; */
         font-size: 100%;
         @apply antialiased;
     }

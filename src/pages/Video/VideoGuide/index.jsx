@@ -1,21 +1,27 @@
-import { useNavigate } from 'react-router-dom'
-import { useVideoStore } from '../../../stores/videoStore'
 import {
   AiOutlineCamera,
-  AiOutlinePlayCircle,
   AiOutlineCloudUpload,
+  AiOutlinePlayCircle,
 } from 'react-icons/ai'
-import { FiAlertTriangle } from 'react-icons/fi'
+import { FiAlertTriangle, FiCheck } from 'react-icons/fi'
+import { useNavigate } from 'react-router-dom'
+
 import frontGuide from '@/assets/images/front-walk-guide.png'
 import sideGuide from '@/assets/images/side-walk-guide.png'
+import { useTodaySubmission } from '@/hooks/queries/video'
+
+import { useVideoStore } from '../../../stores/videoStore'
 
 export default function VideoGuide() {
+  const { data: canRegister, isLoading } = useTodaySubmission()
+
   return (
     <main className="flex flex-col py-6 gap-6">
       <PageHeader />
       <CaptureGuide />
       <WarningSection />
-      <ActionButtons />
+      {!isLoading && canRegister === false && <AlreadySubmittedSection />}
+      <ActionButtons isDisabled={isLoading || !canRegister} />
     </main>
   )
 }
@@ -56,8 +62,30 @@ function WarningSection() {
   )
 }
 
-function ActionButtons() {
-  const setTodayVideoMeta = useVideoStore(state => state.setTodayVideoMeta)
+function AlreadySubmittedSection() {
+  return (
+    <section
+      aria-labelledby="submitted-title"
+      className="rounded-lg border border-amber-500/30 bg-amber-500/10 p-4 flex items-start gap-3"
+    >
+      <FiCheck
+        className="h-5 w-5 text-amber-400 mt-0.5 flex-shrink-0"
+        aria-hidden="true"
+      />
+      <div>
+        <h2 id="submitted-title" className="sr-only">
+          오늘 촬영 완료 안내
+        </h2>
+        <p className="text-sm leading-relaxed text-amber-400">
+          오늘 이미 <strong className="font-semibold">영상을 제출</strong>
+          하셨습니다. 내일부터 다시 촬영 가능합니다.
+        </p>
+      </div>
+    </section>
+  )
+}
+
+function ActionButtons({ isDisabled }) {
   const navigate = useNavigate()
 
   const handleUploadClick = () => {
@@ -68,11 +96,6 @@ function ActionButtons() {
   const handleShootClick = () => {
     console.log('바로 촬영 시작')
     // 카메라/촬영 화면 진입 로직
-
-    setTodayVideoMeta({
-      name: 'sample-video.mp4',
-      size: 5 * 1024 * 1024, // 5MB
-    })
 
     const meta = useVideoStore.getState().getTodayVideoMeta()
     console.log('[todayVideoMeta]', meta)
@@ -91,6 +114,7 @@ function ActionButtons() {
           subtitle="Album"
           icon={AiOutlineCloudUpload}
           variant="secondary"
+          disabled={isDisabled}
           ariaLabel="앨범에서 영상 파일을 선택하여 업로드"
         />
         <ActionCard
@@ -99,6 +123,7 @@ function ActionButtons() {
           subtitle="Record"
           icon={AiOutlineCamera}
           variant="primary"
+          disabled={isDisabled}
           ariaLabel="카메라를 사용하여 바로 영상 촬영"
         />
       </div>
@@ -120,7 +145,11 @@ function ActionCard({
       onClick={onClick}
       disabled={disabled}
       aria-label={ariaLabel}
-      className={`action-card-base action-card-${variant}`}
+      className={`action-card-base action-card-${variant} relative ${
+        disabled
+          ? 'opacity-40 saturate-0 pointer-events-none'
+          : 'active:scale-95 transition-all duration-200'
+      }`}
     >
       <div className="flex items-start justify-between gap-3">
         <div className="flex-1">
@@ -153,7 +182,7 @@ function CaptureGuide() {
 }
 
 function VerticalGuideVideo() {
-  const frontGuideLink = 'https://youtu.be/yyy'
+  const frontGuideLink = 'https://www.youtube.com/shorts/SDQylNnywcI'
   const frontGuideTitle = '세로 예시 1'
   const frontGuideDesc = '세로 예시 1 (클릭 시 유튜브 예시 영상 이동)'
 
@@ -230,7 +259,7 @@ function GuideInstructions() {
 }
 
 function HorizontalGuideVideo() {
-  const sideGuideLink = 'https://youtu.be/xxx'
+  const sideGuideLink = 'https://youtu.be/-QBi7_fb4D8'
   const sideGuideTitle = '가로 예시'
   const sideGuideDesc = '가로 예시 (클릭 시 유튜브 예시 영상 이동)'
 
