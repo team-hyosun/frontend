@@ -5,7 +5,7 @@ import { FaPatreon, FaRegBell, FaChevronLeft } from 'react-icons/fa6'
 function Header({ children, className = '' }) {
   return (
     <header
-      className={`h-14 px-4 flex items-center justify-between bg-surface text-text ${className}`}
+      className={`h-14 flex items-center justify-between bg-surface text-text ${className}`}
     >
       {children}
     </header>
@@ -43,7 +43,7 @@ function Back({ onClick, className = '' }) {
       type="button"
       onClick={onClick}
       aria-label="뒤로가기"
-      className={`tap-target rounded-full p-2 hover:bg-black-400 ${className}`}
+      className={`tap-target rounded-full hover:bg-black-400 ${className}`}
     >
       <FaChevronLeft size={20} aria-hidden />
     </button>

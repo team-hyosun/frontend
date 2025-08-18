@@ -1,15 +1,38 @@
-import { lazy, Suspense } from 'react'
+import { lazy } from 'react'
 
-const loading = <div>loading...</div>
-const VideoPage = lazy(() => import('@/pages/Video'))
+import { Guard } from '../components/Guard'
+import { useVideoStore } from '../stores/videoStore'
+
+const VideoGuidePage = lazy(() => import('@/pages/Video/VideoGuide'))
+const VideoPreviewPage = lazy(() => import('@/pages/Video/VideoPreview'))
+const VideoResultPage = lazy(() => import('@/pages/Video/VideoResult'))
+
+const VideoPreviewGuard = () => {
+  const { getTodayVideoMeta } = useVideoStore()
+
+  return (
+    <Guard condition={!!getTodayVideoMeta()} redirectTo="/video">
+      <VideoPreviewPage />
+    </Guard>
+  )
+}
+
 const videoRouter = [
   {
     path: '',
+    element: <VideoGuidePage />,
+  },
+  {
+    path: 'preview',
     element: (
-      <Suspense fallback={loading}>
-        <VideoPage />
-      </Suspense>
+      <VideoPreviewGuard>
+        <VideoPreviewPage />,
+      </VideoPreviewGuard>
     ),
+  },
+  {
+    path: 'result/:id',
+    element: <VideoResultPage />,
   },
 ]
 

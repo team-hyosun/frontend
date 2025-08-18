@@ -17,7 +17,7 @@ export default function Layout() {
   }
 
   return (
-    <div className="w-[486px] h-[823px] p-3">
+    <div className="w-[486px] h-[823px] py-3 px-11">
       <Header>
         <Header.Left>
           {isHome ? (

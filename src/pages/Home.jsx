@@ -10,7 +10,7 @@ export default function Home() {
 
   return (
     <>
-      <div className="px-7 flex flex-col gap-8">
+      <div className="flex flex-col gap-8">
         <Background />
         <div className="h-10" />
         <section className="mt-5 flex flex-col gap-3">
