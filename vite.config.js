@@ -1,8 +1,9 @@
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
-import { VitePWA } from 'vite-plugin-pwa'
 import tailwindcss from '@tailwindcss/vite'
+import react from '@vitejs/plugin-react'
 import path from 'path'
+import { defineConfig } from 'vite'
+import { VitePWA } from 'vite-plugin-pwa'
+
 export default defineConfig({
   plugins: [
     tailwindcss(),
@@ -39,6 +40,11 @@ export default defineConfig({
       },
     }),
   ],
+  test: {
+    environment: 'jsdom',
+    setupFiles: ['./src/test/setup.js'],
+    globals: true,
+  },
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
@@ -48,6 +54,6 @@ export default defineConfig({
     outDir: 'dist',
   },
   server: {
-    port: 3000
-  }
+    port: 3000,
+  },
 })
