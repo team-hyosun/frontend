@@ -1,6 +1,6 @@
 import { lazy } from 'react'
 
-const ENABLE = import.meta.env.VITE_IS_DEV === 'true'
+const ENABLE = import.meta.env.DEV || import.meta.env.MODE === 'test'
 
 // prod 번들 최소화
 const testRoutes = ENABLE

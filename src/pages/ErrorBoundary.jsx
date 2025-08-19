@@ -14,7 +14,12 @@ export default function ErrorBoundary() {
   return (
     <div className="h-full grid place-items-center p-6 text-center">
       <div className="max-w-sm w-full -translate-y-10">
-        <h2 className="text-xl font-bold text-white">문제가 발생했어요</h2>
+        <h2
+          data-testid="error-message"
+          className="text-xl font-bold text-white"
+        >
+          문제가 발생했어요
+        </h2>
 
         <p className="mt-2 text-sm text-slate-300 whitespace-pre-wrap max-h-40 overflow-auto">
           {message}

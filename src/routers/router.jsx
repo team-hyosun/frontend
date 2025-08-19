@@ -30,7 +30,7 @@ function Root() {
     </Suspense>
   )
 }
-const router = createBrowserRouter([
+export const routesConfig = [
   {
     path: '/',
     element: <Root />,
@@ -62,11 +62,13 @@ const router = createBrowserRouter([
             handle: { title: T['/history'] },
           },
           ...testRoutes,
-          { path: '*', element: <NotFoundPage /> }, // 404
+          { path: '*', element: <NotFoundPage /> },
         ],
       },
     ],
   },
-])
+]
 
+// 앱에서 쓰는 건 기존처럼 router
+const router = createBrowserRouter(routesConfig)
 export default router

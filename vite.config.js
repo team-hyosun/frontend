@@ -42,8 +42,11 @@ export default defineConfig({
   ],
   test: {
     environment: 'jsdom',
-    setupFiles: ['./src/test/setup.js'],
+    // setupFiles: ['./src/test/setup.js'],
+    setupFiles: ['./vitest.setup.js'],
     globals: true,
+    css: false,
+    silent: true, // 기본 리포터 다 꺼버림
   },
   resolve: {
     alias: {
