@@ -55,5 +55,14 @@ export default defineConfig({
   },
   server: {
     port: 3000,
+    proxy: {
+      '/api': {
+        target: 'https://parkincare.com',
+        changeOrigin: true,
+        // 쿠키 세션 쓰면 로컬에서도 동작하도록 (선택)
+        cookieDomainRewrite: 'localhost',
+        cookiePathRewrite: '/',
+      },
+    },
   },
 })

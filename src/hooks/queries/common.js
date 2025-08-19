@@ -23,7 +23,7 @@ export const useApiQuery = (
       ? endpointOrFn
       : () => api.get(endpointOrFn).then(res => res.data)
 
-  return useQuery({ queryKey, queryFn, ...options })
+  return useQuery({ queryKey, queryFn, useErrorBoundary: true, ...options })
 }
 /**
  * 범용 변경 훅 (POST, PUT, DELETE)
