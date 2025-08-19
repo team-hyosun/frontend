@@ -1,5 +1,5 @@
 const KEY = id => `result-${id}`
-const TTL_MS = 1000 * 60 * 30 // 30분
+const TTL_MS = 1000 * 60 * 10 // 10분
 
 /**
  * 세션스토리지에서 임시 결과 가져오기

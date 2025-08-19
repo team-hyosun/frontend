@@ -1,58 +1,17 @@
-import { Suspense, useEffect, useMemo } from 'react'
+import { useMemo } from 'react'
 import { FaChartLine, FaWalking } from 'react-icons/fa'
 import { useNavigate, useParams } from 'react-router-dom'
 
-import { apiQueryFn, useApiQuery } from '@/hooks/queries/common'
-import { getSessionResult, setSessionResult } from '@/libs/sessionStore'
+import { getSessionResult } from '@/libs/sessionStore'
 import { analyzeAngles } from '@/utils/angleClassifier'
-
-import ResultSectionSkeleton from './ResultSection.Loading'
 
 export default function VideoResult() {
   const { id } = useParams()
   const navigate = useNavigate()
-  // 1) 세션스토리지 우선
+
+  // 새로고침 대비 세션 캐시
   const cached = useMemo(() => getSessionResult(id), [id])
-
-  // 2) 쿼리: SWR 방식(캐시 있으면 initialData로 즉시 렌더, 백그라운드 갱신)
-  const query = useApiQuery(
-    ['video', 'result', id],
-    () => apiQueryFn(`/walking-record/${id}/result`, true)(),
-    {
-      enabled: true,
-      initialData: cached?.data,
-      initialDataUpdatedAt: cached?.ts ?? 0,
-      refetchOnMount: cached?.fresh ? false : 'always',
-      refetchOnWindowFocus: true,
-      refetchOnReconnect: true,
-      staleTime: 1000 * 60 * 5,
-      retry: 1,
-    }
-  )
-
-  // 3) 새 데이터 오면 세션스토리지 갱신
-  useEffect(() => {
-    if (query.data) setSessionResult(id, query.data)
-  }, [id, query.data])
-
-  if (query.isError) {
-    return (
-      <section className="rounded-3xl p-6 mb-6 bg-red-900/40 border border-red/40 text-white">
-        <h2 className="text-lg font-semibold">결과를 불러오지 못했어요</h2>
-        <p className="text-sm text-white/80 mt-2">
-          잠시 후 다시 시도해 주세요.
-        </p>
-        <div className="mt-4">
-          <button
-            className="action-button-base action-button-secondary"
-            onClick={() => navigate(-1)}
-          >
-            이전으로
-          </button>
-        </div>
-      </section>
-    )
-  }
+  const result = cached?.data
 
   const { leftTiltAngle, rightTiltAngle, weeklyUpdrsScore } = result
   const angles = analyzeAngles(leftTiltAngle, rightTiltAngle)
@@ -68,17 +27,10 @@ export default function VideoResult() {
         </p>
       </header>
 
-      <main>
-        <Suspense fallback={<ResultSectionSkeleton />}>
-          <ResultSection angles={angles} weeklyUpdrsScore={weeklyUpdrsScore} />
-        </Suspense>
-        {/* <ResultSection angles={angles} weeklyUpdrsScore={weeklyUpdrsScore} /> */}
+      <main data-testid="result-page">
+        <ResultSection angles={angles} weeklyUpdrsScore={weeklyUpdrsScore} />
 
-        <WeeklyChartExplanation
-          onGoWeekly={() => {
-            console.log('go weekly')
-          }}
-        />
+        <WeeklyChartExplanation onGoWeekly={() => navigate('/report')} />
       </main>
 
       <footer className="text-center">
@@ -110,7 +62,10 @@ function ResultSection({ angles, weeklyUpdrsScore }) {
         <header className="mb-3">
           <h2 id="weekly-result-title" className="text-xl font-bold text-white">
             이번 주는{' '}
-            <span className="bg-gradient-to-r from-primary-300 to-primary-100 bg-clip-text text-transparent">
+            <span
+              data-testid="weekly-score"
+              className="bg-gradient-to-r from-primary-300 to-primary-100 bg-clip-text text-transparent"
+            >
               {weeklyUpdrsScore} 구간
             </span>{' '}
             입니다.
@@ -190,7 +145,10 @@ function AngleTile({ side, angle }) {
     >
       <div className="text-start text-xs text-white/60 mb-1">{side}</div>
       <div className="flex items-baseline gap-1">
-        <span className="text-3xl font-extrabold leading-none text-white tabular-nums">
+        <span
+          data-testid={`${side}-angle`}
+          className="text-3xl font-extrabold leading-none text-white tabular-nums"
+        >
           {angle.angle}
         </span>
         <span className="text-sm text-white/70">°</span>

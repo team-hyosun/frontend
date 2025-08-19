@@ -47,5 +47,9 @@ export const useApiMutation = (
 }
 export const apiQueryFn = (endpoint, requireAuth = true) => {
   const api = requireAuth ? authenticated : nonAuthenticated
-  return () => api.get(endpoint).then(res => res.data)
+  return () =>
+    api.get(endpoint).then(res => {
+      console.log('📌 [api response]', endpoint, res.data) // ✅ 모든 응답 로깅
+      return res.data
+    })
 }

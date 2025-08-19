@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import {
   AiOutlineCheckCircle,
   AiOutlineExclamationCircle,
@@ -6,7 +5,7 @@ import {
 } from 'react-icons/ai'
 import { useNavigate } from 'react-router-dom'
 
-import { useApiMutation } from '@/hooks/queries/common'
+import { clearVideoTemp, saveVideoTemp } from '@/libs/videoTempStore'
 import { useVideoStore } from '@/stores/videoStore'
 
 export default function VideoPreviewPage() {
@@ -15,69 +14,31 @@ export default function VideoPreviewPage() {
   const clear = useVideoStore(s => s.clear)
 
   const navigate = useNavigate()
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const formatted = new Date().toISOString().slice(0, 10)
 
-  const { mutate } = useApiMutation(
-    `/walking-record?date=${encodeURIComponent(formatted)}`,
-    'post'
-  )
-
-  const handleRetake = () => {
-    if (isSubmitting) return
+  const handleRetake = async () => {
     clear()
+    await clearVideoTemp() // ✅ 임시 저장 삭제
     navigate('/video?capture=1', { replace: true })
   }
 
-  const handleUpload = () => {
-    if (!file || isSubmitting) return
-    setIsSubmitting(true)
-
-    const fd = new FormData()
-    fd.append('uploadVideo', file, file.name)
-
-    mutate(fd, {
-      onSuccess: data => {
-        const ok = data?.isSuccess === true
-        const payload = data?.payload
-        const id = payload?.walkingRecordId
-
-        if (!ok || !id) {
-          alert(data?.message || '업로드 응답 처리 중 오류가 발생했습니다.')
-          return
-        }
-
-        // 새로고침 대비: 세션 캐시
-        try {
-          sessionStorage.setItem(`walkingResult:${id}`, JSON.stringify(payload))
-        } catch (_) {}
-
-        clear()
-        navigate(`/video/result/${id}`, {
-          replace: true,
-          state: { result: payload },
-        })
-      },
-      onError: e => {
-        const msg =
-          e?.response?.data?.message ||
-          e?.message ||
-          '업로드 중 오류가 발생했습니다.'
-        alert(msg)
-      },
-      onSettled: () => setIsSubmitting(false),
-    })
+  const handleUpload = async () => {
+    if (!file) {
+      alert('업로드할 영상이 없습니다.')
+      return
+    }
+    try {
+      await saveVideoTemp(file) // ✅ 임시 저장
+    } catch {
+      // 저장 실패해도 업로드는 진행
+    }
+    navigate('/video/result', { replace: true }) // 업로드는 Pending에서
   }
 
   return (
-    <main className="flex flex-col py-6 gap-6">
+    <main data-testid="preview-page" className="flex flex-col py-6 gap-6">
       <PageHeader />
       <VideoPreview url={url} />
-      <ActionButtons
-        onRetake={handleRetake}
-        onSubmit={handleUpload}
-        isSubmitting={isSubmitting}
-      />
+      <ActionButtons onRetake={handleRetake} onSubmit={handleUpload} />
     </main>
   )
 }
@@ -140,7 +101,7 @@ function EmptyVideoState() {
   )
 }
 
-function ActionButtons({ onRetake, onSubmit, isSubmitting }) {
+function ActionButtons({ onRetake, onSubmit }) {
   return (
     <footer>
       <div className="flex gap-3" role="group" aria-label="영상 처리 옵션">
@@ -156,12 +117,7 @@ function ActionButtons({ onRetake, onSubmit, isSubmitting }) {
           onClick={onSubmit}
           icon={AiOutlineCheckCircle}
           variant="primary"
-          disabled={isSubmitting}
-          ariaLabel={
-            isSubmitting
-              ? '영상을 제출하는 중입니다'
-              : '영상을 제출하여 분석 시작'
-          }
+          ariaLabel={'영상을 제출하여 분석 시작'}
         >
           제출하기
         </ActionButton>

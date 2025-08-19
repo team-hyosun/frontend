@@ -11,6 +11,7 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import frontGuide from '@/assets/images/front-walk-guide.png'
 import sideGuide from '@/assets/images/side-walk-guide.png'
 import { useTodaySubmission } from '@/hooks/queries/video'
+import { saveVideoTemp } from '@/libs/videoTempStore'
 import { useVideoStore } from '@/stores/videoStore'
 import { validateVideoFile } from '@/utils/video'
 
@@ -19,9 +20,6 @@ export default function VideoGuide() {
   const setFile = useVideoStore(s => s.setFile)
   const fileInputRef = useRef(null)
   const navigate = useNavigate()
-  useEffect(() => {
-    console.log('canRegister changed:', canRegister)
-  }, [canRegister])
 
   const location = useLocation()
   useEffect(() => {
@@ -44,7 +42,7 @@ export default function VideoGuide() {
   const handleSelectFile = () => openPicker(false)
   const handleRecord = () => {
     if (/Mobi|Android|iPhone|iPad/i.test(navigator.userAgent)) {
-      // 모바일 → capture input 실행
+      // 모바일 → capture input 실행, 모바일은 카메라
       openPicker(true)
     } else {
       // 데스크탑 웹 → 카메라 없음 안내
@@ -53,7 +51,7 @@ export default function VideoGuide() {
       )
     }
   }
-  const handleChange = e => {
+  const handleChange = async e => {
     const f = e.target.files?.[0]
     if (!f) return
     const v = validateVideoFile(f, { maxSizeMB: 100 })
@@ -67,6 +65,10 @@ export default function VideoGuide() {
       return
     }
     setFile(f) // store가 url까지 생성
+    try {
+      await saveVideoTemp(f)
+    } catch (_) {} // 임시 암호화 저장 (10분 TTL)
+
     e.target.value = '' // 같은 파일 재선택 대비 초기화
     navigate('/video/preview')
   }

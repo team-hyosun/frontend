@@ -15,10 +15,19 @@ export function validateVideoFile(file, { maxSizeMB = 100 } = {}) {
   return { ok: true }
 }
 
-// export const pickMimeType = () => {
-//   const M = window.MediaRecorder
-//   const ok = t => M?.isTypeSupported?.(t)
-//   if (ok('video/mp4;codecs=h264') || ok('video/mp4')) return 'video/mp4'
-//   if (ok('video/webm;codecs=vp8,opus') || ok('video/webm')) return 'video/webm'
-//   return '' // 브라우저가 결정
-// }
+// Url > file 복구
+export async function fileFromUrl(
+  url,
+  fallbackType = 'video/mp4',
+  filename = 'capture.mp4'
+) {
+  if (!url) return null
+  try {
+    const res = await fetch(url)
+    const blob = await res.blob()
+    const type = blob.type || fallbackType
+    return new File([blob], filename, { type })
+  } catch {
+    return null
+  }
+}

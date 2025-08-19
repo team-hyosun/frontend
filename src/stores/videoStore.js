@@ -3,6 +3,7 @@ import { create } from 'zustand'
 export const useVideoStore = create((set, get) => ({
   file: null,
   url: null,
+
   setFile: file => {
     const { file: prevFile, url: prevUrl } = get()
     if (prevFile === file) {
