@@ -1,54 +1,106 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useState } from 'react'
 import {
   AiOutlineCheckCircle,
   AiOutlineExclamationCircle,
   AiOutlineReload,
 } from 'react-icons/ai'
-import { useLocation, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
+
+import { useApiMutation } from '@/hooks/queries/common'
+import { useVideoStore } from '@/stores/videoStore'
 
 export default function VideoPreviewPage() {
+  const file = useVideoStore(s => s.file)
+  const url = useVideoStore(s => s.url)
+  const clear = useVideoStore(s => s.clear)
+
   const navigate = useNavigate()
-  const { state } = useLocation()
-  // prev page에서 { file } 또는 { src: blob/object URL } 형태로 넘겨주세요.
-  const file = state?.file ?? null
-  const passedSrc = state?.src ?? ''
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const formatted = new Date().toISOString().slice(0, 10)
 
-  // file이 넘어오면 ObjectURL 생성
-  const objectUrl = useMemo(
-    () => (file ? URL.createObjectURL(file) : ''),
-    [file]
+  const { mutate } = useApiMutation(
+    `/walking-record?date=${encodeURIComponent(formatted)}`,
+    'post'
   )
 
-  useEffect(
-    () => () => objectUrl && URL.revokeObjectURL(objectUrl),
-    [objectUrl]
-  )
+  const handleRetake = () => {
+    if (isSubmitting) return
+    clear()
+    navigate('/video?capture=1', { replace: true })
+  }
 
-  const videoSrc = passedSrc || objectUrl
-  const [submitting, setSubmitting] = useState(false)
-  const [err, setErr] = useState('')
+  const handleUpload = () => {
+    if (!file || isSubmitting) return
+    setIsSubmitting(true)
 
-  const handleRetake = () => navigate(-1)
+    const fd = new FormData()
+    fd.append('uploadVideo', file, file.name)
 
-  const handleSubmit = () => {
-    const id = 123
-    console.log('submit ', id)
-    navigate(`/video/result/${id}`)
+    mutate(fd, {
+      onSuccess: data => {
+        const ok = data?.isSuccess === true
+        const payload = data?.payload
+        const id = payload?.walkingRecordId
+
+        if (!ok || !id) {
+          alert(data?.message || '업로드 응답 처리 중 오류가 발생했습니다.')
+          return
+        }
+
+        // 새로고침 대비: 세션 캐시
+        try {
+          sessionStorage.setItem(`walkingResult:${id}`, JSON.stringify(payload))
+        } catch (_) {}
+
+        clear()
+        navigate(`/video/result/${id}`, {
+          replace: true,
+          state: { result: payload },
+        })
+      },
+      onError: e => {
+        const msg =
+          e?.response?.data?.message ||
+          e?.message ||
+          '업로드 중 오류가 발생했습니다.'
+        alert(msg)
+      },
+      onSettled: () => setIsSubmitting(false),
+    })
   }
 
   return (
     <main className="flex flex-col py-6 gap-6">
       <PageHeader />
-      <VideoPreview videoSrc={videoSrc} error={err} />
+      <VideoPreview url={url} />
       <ActionButtons
         onRetake={handleRetake}
-        onSubmit={handleSubmit}
-        isSubmitting={submitting}
+        onSubmit={handleUpload}
+        isSubmitting={isSubmitting}
       />
     </main>
   )
 }
 
+function VideoPreview({ url, error }) {
+  return (
+    <section aria-labelledby="video-preview-title">
+      <h2 id="video-preview-title" className="sr-only">
+        영상 미리보기
+      </h2>
+
+      <div className="rounded-2xl bg-black-700 ring-1 ring-black-600 overflow-hidden">
+        {url ? <VideoPlayer src={url} /> : <EmptyVideoState />}
+      </div>
+
+      {error && (
+        <div role="alert" className="mt-3">
+          <p className="text-sm text-red-400">{error}</p>
+        </div>
+      )}
+    </section>
+  )
+}
 function PageHeader() {
   return (
     <header>
@@ -62,27 +114,8 @@ function PageHeader() {
   )
 }
 
-function VideoPreview({ videoSrc, error }) {
-  return (
-    <section aria-labelledby="video-preview-title">
-      <h2 id="video-preview-title" className="sr-only">
-        영상 미리보기
-      </h2>
-
-      <div className="rounded-2xl bg-black-700 ring-1 ring-black-600 overflow-hidden">
-        {videoSrc ? <VideoPlayer src={videoSrc} /> : <EmptyVideoState />}
-      </div>
-
-      {error && (
-        <div role="alert" className="mt-3">
-          <p className="text-sm text-red-400">{error}</p>
-        </div>
-      )}
-    </section>
-  )
-}
-
 function VideoPlayer({ src }) {
+  if (!src) return null
   return (
     <div className="aspect-video">
       <video
@@ -91,7 +124,6 @@ function VideoPlayer({ src }) {
         controls
         playsInline
         aria-label="미리보기 영상"
-        // iOS 자동재생 필요 시 muted + autoPlay를 추가(권장하지 않으면 생략)
       />
     </div>
   )
@@ -131,7 +163,7 @@ function ActionButtons({ onRetake, onSubmit, isSubmitting }) {
               : '영상을 제출하여 분석 시작'
           }
         >
-          {isSubmitting ? '제출 중...' : '제출하기'}
+          제출하기
         </ActionButton>
       </div>
     </footer>

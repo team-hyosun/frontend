@@ -1,25 +1,61 @@
-import { useState } from 'react'
+import { Suspense, useEffect, useMemo } from 'react'
 import { FaChartLine, FaWalking } from 'react-icons/fa'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 
+import { apiQueryFn, useApiQuery } from '@/hooks/queries/common'
+import { getSessionResult, setSessionResult } from '@/libs/sessionStore'
 import { analyzeAngles } from '@/utils/angleClassifier'
 
+import ResultSectionSkeleton from './ResultSection.Loading'
+
 export default function VideoResult() {
-  const [weekSegment] = useState('1')
-  // 양호
-  // const leftAngle = 3.5
-  // const rightAngle = 3.5
-
-  // 주의
-  const leftAngle = 9.1
-  const rightAngle = 9.1
-
-  // 경고
-  // const leftAngle = 10.1
-  // const rightAngle = 10.1
-
-  const angles = analyzeAngles(leftAngle, rightAngle)
+  const { id } = useParams()
   const navigate = useNavigate()
+  // 1) 세션스토리지 우선
+  const cached = useMemo(() => getSessionResult(id), [id])
+
+  // 2) 쿼리: SWR 방식(캐시 있으면 initialData로 즉시 렌더, 백그라운드 갱신)
+  const query = useApiQuery(
+    ['video', 'result', id],
+    () => apiQueryFn(`/walking-record/${id}/result`, true)(),
+    {
+      enabled: true,
+      initialData: cached?.data,
+      initialDataUpdatedAt: cached?.ts ?? 0,
+      refetchOnMount: cached?.fresh ? false : 'always',
+      refetchOnWindowFocus: true,
+      refetchOnReconnect: true,
+      staleTime: 1000 * 60 * 5,
+      retry: 1,
+    }
+  )
+
+  // 3) 새 데이터 오면 세션스토리지 갱신
+  useEffect(() => {
+    if (query.data) setSessionResult(id, query.data)
+  }, [id, query.data])
+
+  if (query.isError) {
+    return (
+      <section className="rounded-3xl p-6 mb-6 bg-red-900/40 border border-red/40 text-white">
+        <h2 className="text-lg font-semibold">결과를 불러오지 못했어요</h2>
+        <p className="text-sm text-white/80 mt-2">
+          잠시 후 다시 시도해 주세요.
+        </p>
+        <div className="mt-4">
+          <button
+            className="action-button-base action-button-secondary"
+            onClick={() => navigate(-1)}
+          >
+            이전으로
+          </button>
+        </div>
+      </section>
+    )
+  }
+
+  const { leftTiltAngle, rightTiltAngle, weeklyUpdrsScore } = result
+  const angles = analyzeAngles(leftTiltAngle, rightTiltAngle)
 
   return (
     <div className="py-6 w-full">
@@ -33,7 +69,10 @@ export default function VideoResult() {
       </header>
 
       <main>
-        <ResultSection angles={angles} weekSegment={weekSegment} />
+        <Suspense fallback={<ResultSectionSkeleton />}>
+          <ResultSection angles={angles} weeklyUpdrsScore={weeklyUpdrsScore} />
+        </Suspense>
+        {/* <ResultSection angles={angles} weeklyUpdrsScore={weeklyUpdrsScore} /> */}
 
         <WeeklyChartExplanation
           onGoWeekly={() => {
@@ -54,7 +93,7 @@ export default function VideoResult() {
   )
 }
 
-function ResultSection({ angles, weekSegment }) {
+function ResultSection({ angles, weeklyUpdrsScore }) {
   return (
     <section
       aria-labelledby="weekly-result-title"
@@ -72,7 +111,7 @@ function ResultSection({ angles, weekSegment }) {
           <h2 id="weekly-result-title" className="text-xl font-bold text-white">
             이번 주는{' '}
             <span className="bg-gradient-to-r from-primary-300 to-primary-100 bg-clip-text text-transparent">
-              {weekSegment} 구간
+              {weeklyUpdrsScore} 구간
             </span>{' '}
             입니다.
           </h2>
