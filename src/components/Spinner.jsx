@@ -14,7 +14,7 @@ export default function Spinner({ size = 20, className = '' }) {
     >
       <FaSpinner
         className="animate-spin"
-        style={{ width: size, height: size, animationDuration: '1.5s' }}
+        style={{ width: size, height: size, animationDuration: '3s' }}
         aria-hidden="true"
       />
     </div>

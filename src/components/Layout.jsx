@@ -18,7 +18,7 @@ export default function Layout() {
   }
 
   return (
-    <div className="relative w-[486px] h-[823px] py-3 px-11">
+    <div className="relative w-[486px] h-[823px] py-3 px-11 flex flex-col">
       <Header>
         <Header.Left>
           {isHome ? (
@@ -41,7 +41,7 @@ export default function Layout() {
         </Header.Right>
       </Header>
 
-      <main className="">
+      <main className="flex-1">
         <Outlet />
       </main>
     </div>

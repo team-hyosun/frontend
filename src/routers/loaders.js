@@ -1,9 +1,9 @@
 import { redirect } from 'react-router-dom'
 
-import { fetchSubmitToday } from '@/hooks/queries/video'
+import { useVideoStore } from '@/stores/videoStore'
 
 export async function videoPreviewLoader() {
-  const can = await fetchSubmitToday()
-  if (!can) throw redirect('/video')
+  const { file } = useVideoStore.getState()
+  if (!file) throw redirect('/video')
   return null
 }
