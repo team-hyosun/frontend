@@ -1,10 +1,13 @@
 import { useCallback, useMemo, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 
+import { useQueryClient } from '@tanstack/react-query'
+
 import {
   ENDPOINT_CAN_SUBMIT_TODAY,
   ENDPOINT_VIDEO_UPLOAD,
   QUERY_KEY_CAN_SUBMIT_TODAY,
+  QUERY_KEY_TODAY_RESULT,
 } from '@/constant/queryKeys'
 import { setSessionResult } from '@/libs/sessionStore'
 import { clearVideoTemp, loadVideoTemp } from '@/libs/videoTempStore'
@@ -30,9 +33,16 @@ export const useTodaySubmission = () => {
   )
 }
 /**
- * 영상 업로드 하기
+ * 보행영상을 업로드 훅.
  *
+ * 사용자로부터 선택된 보행 영상 파일을 서버 업로드,
+ * 업로드 성공 또는 실패에 따라 적절한 페이지로 리디렉션
+ *
+ * @returns {{
+ * start: () => Promise<void>
+ * }} 업로드 프로세스를 시작하는 `start` 함수 리턴
  */
+
 export function useUploadWalkingVideo() {
   const navigate = useNavigate()
   const file = useVideoStore(s => s.file)
@@ -41,6 +51,8 @@ export function useUploadWalkingVideo() {
 
   const date = useMemo(() => new Date().toISOString().slice(0, 10), [])
   const { mutateAsync } = useApiMutation(ENDPOINT_VIDEO_UPLOAD(date), 'post')
+
+  const queryClient = useQueryClient()
 
   const start = useCallback(async () => {
     if (startedRef.current) return
@@ -71,9 +83,11 @@ export function useUploadWalkingVideo() {
         startedRef.current = false
         return
       }
+      // ✅ 업로드 성공 → React Query 캐시에도 저장 (세션스토리지와 이중화)
+      queryClient.setQueryData([...QUERY_KEY_TODAY_RESULT, String(id)], payload)
+      setSessionResult(id, payload) //  세션 스토리지 저장
 
       // 3) 즉시 라우팅 (UX 빠르게)
-      setSessionResult(id, payload) // 동기 저장
       console.debug('[PENDING] navigating →', `/video/result/${id}`)
       navigate(`/video/result/${id}`, { replace: true })
 

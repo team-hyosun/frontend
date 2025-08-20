@@ -2,16 +2,26 @@ import { useMemo } from 'react'
 import { FaChartLine, FaWalking } from 'react-icons/fa'
 import { useNavigate, useParams } from 'react-router-dom'
 
+import { useQueryClient } from '@tanstack/react-query'
+
+import { QUERY_KEY_TODAY_RESULT } from '@/constant/queryKeys'
 import { getSessionResult } from '@/libs/sessionStore'
 import { analyzeAngles } from '@/utils/angleClassifier'
 
 export default function VideoResult() {
   const { id } = useParams()
+  const queryClient = useQueryClient()
   const navigate = useNavigate()
 
-  // 새로고침 대비 세션 캐시
-  const cached = useMemo(() => getSessionResult(id), [id])
-  const result = cached?.data
+  // 세션 캐시 1차
+  const sessionData = useMemo(() => getSessionResult(id), [id])
+
+  // 2) React Query 캐시 2차 복구 (네트워크 미사용, 메모리 캐시 접근)
+  const rqCached =
+    queryClient.getQueryData([...QUERY_KEY_TODAY_RESULT, String(id)]) ?? null
+
+  // 우선순위: 세션 → RQ 캐시
+  const result = sessionData ?? rqCached
 
   const { leftTiltAngle, rightTiltAngle, weeklyUpdrsScore } = result
   const angles = analyzeAngles(leftTiltAngle, rightTiltAngle)
