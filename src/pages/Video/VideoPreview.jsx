@@ -1,54 +1,67 @@
-import { useEffect, useMemo, useState } from 'react'
 import {
   AiOutlineCheckCircle,
   AiOutlineExclamationCircle,
   AiOutlineReload,
 } from 'react-icons/ai'
-import { useLocation, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
+
+import { clearVideoTemp, saveVideoTemp } from '@/libs/videoTempStore'
+import { useVideoStore } from '@/stores/videoStore'
 
 export default function VideoPreviewPage() {
+  const file = useVideoStore(s => s.file)
+  const url = useVideoStore(s => s.url)
+  const clear = useVideoStore(s => s.clear)
+
   const navigate = useNavigate()
-  const { state } = useLocation()
-  // prev page에서 { file } 또는 { src: blob/object URL } 형태로 넘겨주세요.
-  const file = state?.file ?? null
-  const passedSrc = state?.src ?? ''
 
-  // file이 넘어오면 ObjectURL 생성
-  const objectUrl = useMemo(
-    () => (file ? URL.createObjectURL(file) : ''),
-    [file]
-  )
+  const handleRetake = async () => {
+    clear()
+    await clearVideoTemp() // ✅ 임시 저장 삭제
+    navigate('/video?capture=1', { replace: true })
+  }
 
-  useEffect(
-    () => () => objectUrl && URL.revokeObjectURL(objectUrl),
-    [objectUrl]
-  )
-
-  const videoSrc = passedSrc || objectUrl
-  const [submitting, setSubmitting] = useState(false)
-  const [err, setErr] = useState('')
-
-  const handleRetake = () => navigate(-1)
-
-  const handleSubmit = () => {
-    const id = 123
-    console.log('submit ', id)
-    navigate(`/video/result/${id}`)
+  const handleUpload = async () => {
+    if (!file) {
+      alert('업로드할 영상이 없습니다.')
+      return
+    }
+    try {
+      await saveVideoTemp(file) // ✅ 임시 저장
+    } catch {
+      // 저장 실패해도 업로드는 진행
+    }
+    navigate('/video/result', { replace: true }) // 업로드는 Pending에서
   }
 
   return (
-    <main className="flex flex-col py-6 gap-6">
+    <main data-testid="preview-page" className="flex flex-col py-6 gap-6">
       <PageHeader />
-      <VideoPreview videoSrc={videoSrc} error={err} />
-      <ActionButtons
-        onRetake={handleRetake}
-        onSubmit={handleSubmit}
-        isSubmitting={submitting}
-      />
+      <VideoPreview url={url} />
+      <ActionButtons onRetake={handleRetake} onSubmit={handleUpload} />
     </main>
   )
 }
 
+function VideoPreview({ url, error }) {
+  return (
+    <section aria-labelledby="video-preview-title">
+      <h2 id="video-preview-title" className="sr-only">
+        영상 미리보기
+      </h2>
+
+      <div className="rounded-2xl bg-black-700 ring-1 ring-black-600 overflow-hidden">
+        {url ? <VideoPlayer src={url} /> : <EmptyVideoState />}
+      </div>
+
+      {error && (
+        <div role="alert" className="mt-3">
+          <p className="text-sm text-red-400">{error}</p>
+        </div>
+      )}
+    </section>
+  )
+}
 function PageHeader() {
   return (
     <header>
@@ -62,27 +75,8 @@ function PageHeader() {
   )
 }
 
-function VideoPreview({ videoSrc, error }) {
-  return (
-    <section aria-labelledby="video-preview-title">
-      <h2 id="video-preview-title" className="sr-only">
-        영상 미리보기
-      </h2>
-
-      <div className="rounded-2xl bg-black-700 ring-1 ring-black-600 overflow-hidden">
-        {videoSrc ? <VideoPlayer src={videoSrc} /> : <EmptyVideoState />}
-      </div>
-
-      {error && (
-        <div role="alert" className="mt-3">
-          <p className="text-sm text-red-400">{error}</p>
-        </div>
-      )}
-    </section>
-  )
-}
-
 function VideoPlayer({ src }) {
+  if (!src) return null
   return (
     <div className="aspect-video">
       <video
@@ -91,7 +85,6 @@ function VideoPlayer({ src }) {
         controls
         playsInline
         aria-label="미리보기 영상"
-        // iOS 자동재생 필요 시 muted + autoPlay를 추가(권장하지 않으면 생략)
       />
     </div>
   )
@@ -108,7 +101,7 @@ function EmptyVideoState() {
   )
 }
 
-function ActionButtons({ onRetake, onSubmit, isSubmitting }) {
+function ActionButtons({ onRetake, onSubmit }) {
   return (
     <footer>
       <div className="flex gap-3" role="group" aria-label="영상 처리 옵션">
@@ -124,14 +117,9 @@ function ActionButtons({ onRetake, onSubmit, isSubmitting }) {
           onClick={onSubmit}
           icon={AiOutlineCheckCircle}
           variant="primary"
-          disabled={isSubmitting}
-          ariaLabel={
-            isSubmitting
-              ? '영상을 제출하는 중입니다'
-              : '영상을 제출하여 분석 시작'
-          }
+          ariaLabel={'영상을 제출하여 분석 시작'}
         >
-          {isSubmitting ? '제출 중...' : '제출하기'}
+          제출하기
         </ActionButton>
       </div>
     </footer>

@@ -4,12 +4,13 @@
     "paths": {
       "@/*": ["src/*"]
     },
-    "jsx": "react-jsx"
+    "jsx": "react-jsx",
+    "types": ["vitest/globals"]
   },
   "include": [
-    "src/**/*"
+    "src/**/*",
+    "__tests__/msw.server.js",
+    "__tests__/error-boundary.test.jsx"
   ],
-  "exclude": [
-    "node_modules"
-  ]
+  "exclude": ["node_modules"]
 }

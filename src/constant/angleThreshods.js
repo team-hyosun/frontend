@@ -1,14 +1,14 @@
 // 각도 분류 기준과 UI 스타일 상수
 export const ANGLE_THRESHOLDS = {
-  GOOD: 3.5,     // 양호 기준 (이하)
-  WARNING: 10.0,  // 경고 기준 (이하)
-};
+  GOOD: 3.5, // 양호 기준 (이하)
+  WARNING: 5.0, // 경고 기준 (이하)
+}
 
 export const ANGLE_STATUS = {
   GOOD: 'good',
   CAUTION: 'caution',
   DANGER: 'danger',
-};
+}
 
 export const ANGLE_CONFIG = {
   [ANGLE_STATUS.GOOD]: {
@@ -29,4 +29,4 @@ export const ANGLE_CONFIG = {
     textColor: 'text-red-300 font-semibold',
     barColor: 'bg-gradient-to-r from-red-300 to-black-200',
   },
-};
+}

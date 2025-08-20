@@ -1,25 +1,30 @@
-import { useState } from 'react'
+import { useMemo } from 'react'
 import { FaChartLine, FaWalking } from 'react-icons/fa'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 
+import { useQueryClient } from '@tanstack/react-query'
+
+import { QUERY_KEY_TODAY_RESULT } from '@/constant/queryKeys'
+import { getSessionResult } from '@/libs/sessionStore'
 import { analyzeAngles } from '@/utils/angleClassifier'
 
 export default function VideoResult() {
-  const [weekSegment] = useState('1')
-  // 양호
-  // const leftAngle = 3.5
-  // const rightAngle = 3.5
-
-  // 주의
-  const leftAngle = 9.1
-  const rightAngle = 9.1
-
-  // 경고
-  // const leftAngle = 10.1
-  // const rightAngle = 10.1
-
-  const angles = analyzeAngles(leftAngle, rightAngle)
+  const { id } = useParams()
+  const queryClient = useQueryClient()
   const navigate = useNavigate()
+
+  // 세션 캐시 1차
+  const sessionData = useMemo(() => getSessionResult(id), [id])
+
+  // 2) React Query 캐시 2차 복구 (네트워크 미사용, 메모리 캐시 접근)
+  const rqCached =
+    queryClient.getQueryData([...QUERY_KEY_TODAY_RESULT, String(id)]) ?? null
+
+  // 우선순위: 세션 → RQ 캐시
+  const result = sessionData ?? rqCached
+
+  const { leftTiltAngle, rightTiltAngle, weeklyUpdrsScore } = result
+  const angles = analyzeAngles(leftTiltAngle, rightTiltAngle)
 
   return (
     <div className="py-6 w-full">
@@ -32,14 +37,10 @@ export default function VideoResult() {
         </p>
       </header>
 
-      <main>
-        <ResultSection angles={angles} weekSegment={weekSegment} />
+      <main data-testid="result-page">
+        <ResultSection angles={angles} weeklyUpdrsScore={weeklyUpdrsScore} />
 
-        <WeeklyChartExplanation
-          onGoWeekly={() => {
-            console.log('go weekly')
-          }}
-        />
+        <WeeklyChartExplanation onGoWeekly={() => navigate('/report')} />
       </main>
 
       <footer className="text-center">
@@ -54,7 +55,7 @@ export default function VideoResult() {
   )
 }
 
-function ResultSection({ angles, weekSegment }) {
+function ResultSection({ angles, weeklyUpdrsScore }) {
   return (
     <section
       aria-labelledby="weekly-result-title"
@@ -71,8 +72,11 @@ function ResultSection({ angles, weekSegment }) {
         <header className="mb-3">
           <h2 id="weekly-result-title" className="text-xl font-bold text-white">
             이번 주는{' '}
-            <span className="bg-gradient-to-r from-primary-300 to-primary-100 bg-clip-text text-transparent">
-              {weekSegment} 구간
+            <span
+              data-testid="weekly-score"
+              className="bg-gradient-to-r from-primary-300 to-primary-100 bg-clip-text text-transparent"
+            >
+              {weeklyUpdrsScore} 구간
             </span>{' '}
             입니다.
           </h2>
@@ -151,7 +155,10 @@ function AngleTile({ side, angle }) {
     >
       <div className="text-start text-xs text-white/60 mb-1">{side}</div>
       <div className="flex items-baseline gap-1">
-        <span className="text-3xl font-extrabold leading-none text-white tabular-nums">
+        <span
+          data-testid={`${side}-angle`}
+          className="text-3xl font-extrabold leading-none text-white tabular-nums"
+        >
           {angle.angle}
         </span>
         <span className="text-sm text-white/70">°</span>

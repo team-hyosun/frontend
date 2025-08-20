@@ -1,27 +1,97 @@
+import { useEffect } from 'react'
+import { useRef } from 'react'
 import {
   AiOutlineCamera,
   AiOutlineCloudUpload,
   AiOutlinePlayCircle,
 } from 'react-icons/ai'
 import { FiAlertTriangle, FiCheck } from 'react-icons/fi'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 
 import frontGuide from '@/assets/images/front-walk-guide.png'
 import sideGuide from '@/assets/images/side-walk-guide.png'
 import { useTodaySubmission } from '@/hooks/queries/video'
-
-import { useVideoStore } from '../../../stores/videoStore'
+import { saveVideoTemp } from '@/libs/videoTempStore'
+import { useVideoStore } from '@/stores/videoStore'
+import { validateVideoFile } from '@/utils/video'
 
 export default function VideoGuide() {
-  const { data: canRegister, isLoading } = useTodaySubmission()
+  const { data: canRegister } = useTodaySubmission()
+  const setFile = useVideoStore(s => s.setFile)
+  const fileInputRef = useRef(null)
+  const navigate = useNavigate()
+
+  const location = useLocation()
+  useEffect(() => {
+    if (location.search.includes('capture=1')) {
+      openPicker(true) // 카메라 열기
+      navigate('/video', { replace: true }) // URL 정리 (쿼리 제거)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.search])
+
+  // 공용: input 열기 (capture on/off)
+  const openPicker = useCamera => {
+    const el = fileInputRef.current
+    if (!el) return
+    if (useCamera) el.setAttribute('capture', 'environment')
+    else el.removeAttribute('capture')
+    el.click()
+  }
+
+  const handleSelectFile = () => openPicker(false)
+  const handleRecord = () => {
+    if (/Mobi|Android|iPhone|iPad/i.test(navigator.userAgent)) {
+      // 모바일 → capture input 실행, 모바일은 카메라
+      openPicker(true)
+    } else {
+      // 데스크탑 웹 → 카메라 없음 안내
+      alert(
+        '데스크탑에서는 카메라 촬영이 지원되지 않습니다. 모바일 기기에서 이용해주세요.'
+      )
+    }
+  }
+  const handleChange = async e => {
+    const f = e.target.files?.[0]
+    if (!f) return
+    const v = validateVideoFile(f, { maxSizeMB: 100 })
+    if (!v.ok) {
+      alert(
+        v.reason === 'NOT_VIDEO'
+          ? '동영상만 업로드 가능해요.'
+          : '파일이 너무 큽니다.'
+      )
+      e.target.value = ''
+      return
+    }
+    setFile(f) // store가 url까지 생성
+    try {
+      await saveVideoTemp(f)
+    } catch (_) {} // 임시 암호화 저장 (10분 TTL)
+
+    e.target.value = '' // 같은 파일 재선택 대비 초기화
+    navigate('/video/preview')
+  }
 
   return (
     <main className="flex flex-col py-6 gap-6">
       <PageHeader />
       <CaptureGuide />
       <WarningSection />
-      {!isLoading && canRegister === false && <AlreadySubmittedSection />}
-      <ActionButtons isDisabled={isLoading || !canRegister} />
+      {canRegister === false && <AlreadySubmittedSection />}
+      {/* 숨김 파일 입력 (웹/PWA/앱 웹뷰 공통) */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="video/*"
+        className="hidden"
+        onChange={handleChange}
+      />
+      <ActionButtons
+        isDisabled={!canRegister}
+        onSelectFile={handleSelectFile}
+        onRecord={handleRecord}
+      />
     </main>
   )
 }
@@ -85,23 +155,7 @@ function AlreadySubmittedSection() {
   )
 }
 
-function ActionButtons({ isDisabled }) {
-  const navigate = useNavigate()
-
-  const handleUploadClick = () => {
-    console.log('앨범 업로드 진입')
-    // 파일 선택 모달/네이티브 피커 호출 등
-  }
-
-  const handleShootClick = () => {
-    console.log('바로 촬영 시작')
-    // 카메라/촬영 화면 진입 로직
-
-    const meta = useVideoStore.getState().getTodayVideoMeta()
-    console.log('[todayVideoMeta]', meta)
-    navigate('preview')
-  }
-
+function ActionButtons({ isDisabled, onSelectFile, onRecord }) {
   return (
     <section aria-labelledby="actions-title">
       <h2 id="actions-title" className="sr-only">
@@ -109,7 +163,7 @@ function ActionButtons({ isDisabled }) {
       </h2>
       <div className="grid grid-cols-2 gap-3">
         <ActionCard
-          onClick={handleUploadClick}
+          onClick={onSelectFile}
           title="영상 파일 선택"
           subtitle="Album"
           icon={AiOutlineCloudUpload}
@@ -118,7 +172,7 @@ function ActionButtons({ isDisabled }) {
           ariaLabel="앨범에서 영상 파일을 선택하여 업로드"
         />
         <ActionCard
-          onClick={handleShootClick}
+          onClick={onRecord}
           title="촬영하기"
           subtitle="Record"
           icon={AiOutlineCamera}
