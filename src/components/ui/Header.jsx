@@ -1,5 +1,5 @@
 // src/components/ui/Header.jsx
-import { FaPatreon, FaRegBell, FaChevronLeft } from 'react-icons/fa6'
+import { FaChevronLeft, FaPatreon, FaRegBell } from 'react-icons/fa6'
 
 /* Frame */
 function Header({ children, className = '' }) {

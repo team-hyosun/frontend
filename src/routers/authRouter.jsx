@@ -1,6 +1,4 @@
-import { lazy, Suspense } from 'react'
-
-const loading = <div>loading...</div>
+import { lazy } from 'react'
 
 const LoginPage = lazy(() => import('@/pages/Auth/Login'))
 const SignupPage = lazy(() => import('@/pages/Auth/Signup'))
@@ -8,19 +6,11 @@ const SignupPage = lazy(() => import('@/pages/Auth/Signup'))
 const authRouter = [
   {
     path: 'login',
-    element: (
-      <Suspense fallback={loading}>
-        <LoginPage />
-      </Suspense>
-    ),
+    element: <LoginPage />,
   },
   {
     path: 'signup',
-    element: (
-      <Suspense fallback={loading}>
-        <SignupPage />
-      </Suspense>
-    ),
+    element: <SignupPage />,
   },
 ]
 

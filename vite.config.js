@@ -1,12 +1,15 @@
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
-import { VitePWA } from 'vite-plugin-pwa'
 import tailwindcss from '@tailwindcss/vite'
+import react from '@vitejs/plugin-react'
 import path from 'path'
+import { defineConfig } from 'vite'
+import mkcert from 'vite-plugin-mkcert'
+import { VitePWA } from 'vite-plugin-pwa'
+
 export default defineConfig({
   plugins: [
     tailwindcss(),
     react(),
+    mkcert(),
 
     VitePWA({
       registerType: 'autoUpdate',
@@ -39,6 +42,14 @@ export default defineConfig({
       },
     }),
   ],
+  test: {
+    environment: 'jsdom',
+    // setupFiles: ['./src/test/setup.js'],
+    setupFiles: ['./vitest.setup.js'],
+    globals: true,
+    css: false,
+    silent: true, // 기본 리포터 다 꺼버림
+  },
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
@@ -48,6 +59,16 @@ export default defineConfig({
     outDir: 'dist',
   },
   server: {
-    port: 3000
-  }
+    https: true,
+    port: 3000,
+    proxy: {
+      '/api': {
+        target: 'https://parkincare.com',
+        changeOrigin: true,
+        // 쿠키 세션 쓰면 로컬에서도 동작하도록 (선택)
+        cookieDomainRewrite: 'localhost',
+        cookiePathRewrite: '/',
+      },
+    },
+  },
 })

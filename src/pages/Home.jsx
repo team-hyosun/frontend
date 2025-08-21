@@ -1,19 +1,38 @@
-import { Link } from 'react-router-dom'
 import {
-  FaVideo,
-  FaPills,
-  FaFileLines,
   FaClockRotateLeft,
+  FaFileLines,
+  FaPills,
+  FaVideo,
 } from 'react-icons/fa6'
+import { FiLogOut } from 'react-icons/fi'
+import { Link, useNavigate } from 'react-router-dom'
+
+import { useLogoutMutation } from '@/hooks/queries/auth'
+
 export default function Home() {
   const userName = '홍길동'
+  const navigate = useNavigate()
+  const logout = useLogoutMutation()
 
+  const handleLogout = () => {
+    logout.mutate(undefined, {
+      onSuccess: () => navigate('/auth/login', { replace: true }),
+      onError: () => navigate('/auth/login', { replace: true }),
+    })
+  }
   return (
     <>
       <div className="flex flex-col gap-8">
         <Background />
-        <div className="h-10" />
-        <section className="mt-5 flex flex-col gap-3">
+        <div className="h-3" />
+        <section className="mt-1 flex flex-col gap-3">
+          <button
+            onClick={handleLogout}
+            className="p-2 rounded-full"
+            title="로그아웃"
+          >
+            <FiLogOut className="w-5 h-5 text-white-500" />
+          </button>
           <h1 className="text-3xl">
             안녕하세요,
             <br /> {userName}님
@@ -116,7 +135,7 @@ function Tile({ to, icon, title, desc, bgClass = '', iconClass = '' }) {
         <div className="text-xl font-semibold mb-2">{title}</div>
 
         {/* 설명 */}
-        <p className="font-thin text-sm text-white-500 leading-snug">{desc}</p>
+        <p className="font-mono text-sm text-white-500 leading-snug">{desc}</p>
       </div>
     </Link>
   )

@@ -1,15 +1,18 @@
 import React from 'react'
 import { Line } from 'react-chartjs-2'
+
 import {
-  Chart as ChartJS,
-  LineElement,
   CategoryScale,
+  Chart as ChartJS,
+  Legend,
+  LineElement,
   LinearScale,
   PointElement,
   Title,
   Tooltip,
-  Legend,
 } from 'chart.js'
+
+import { useWeeklyReport } from '../hooks/queries/report'
 
 ChartJS.register(
   LineElement,
@@ -22,16 +25,35 @@ ChartJS.register(
 )
 
 export default function WeeklyReport() {
-  // 예시 데이터 - 파킨슨병 환자의 보행 분석 데이터
-  const weeklyData = [
-    { date: '08/01', updrs: 2, leftBias: -1.2, rightBias: 1.8 },
-    { date: '08/02', updrs: 3, leftBias: -2.1, rightBias: 3.3 },
-    { date: '08/03', updrs: 2, leftBias: -2.9, rightBias: 2.6 },
-    { date: '08/04', updrs: 3, leftBias: -2.8, rightBias: 2.9 },
-    { date: '08/05', updrs: 3, leftBias: -3.2, rightBias: 2.1 },
-    { date: '08/06', updrs: 2, leftBias: -3.1, rightBias: 2.0 },
-    { date: '08/07', updrs: 1, leftBias: -1.5, rightBias: 0.9 },
-  ]
+  const { data, isLoading, isError } = useWeeklyReport()
+
+  // 차트용 형태 가공
+  const toLabel = iso => {
+    const d = new Date(iso)
+    const mm = String(d.getMonth() + 1).padStart(2, '0')
+    const dd = String(d.getDate()).padStart(2, '0')
+    return `${mm}/${dd}`
+  }
+
+  const weeklyData = (data ?? []).map(d => ({
+    date: toLabel(d.date),
+    updrs: d.updrsscore,
+    leftBias: d.leftTiltAngle, // 왼쪽 편향각
+    rightBias: d.rightTiltAngle, // 오른쪽 편향각
+  }))
+
+  if (isLoading)
+    return <div className="p-6 text-white text-center">불러오는 중…</div>
+  if (isError)
+    return (
+      <div className="p-6 text-red-300 text-center">
+        리포트를 불러오지 못했어요.
+      </div>
+    )
+  if (!weeklyData.length)
+    return (
+      <div className="p-6 text-white text-center">표시할 데이터가 없어요.</div>
+    )
 
   const labels = weeklyData.map(item => item.date)
 
@@ -89,23 +111,23 @@ export default function WeeklyReport() {
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
-      legend: { 
+      legend: {
         labels: { color: '#000', font: { size: 14 } },
         position: 'top',
       },
       title: { display: false },
       tooltip: {
         callbacks: {
-          label: function(context) {
-            return `UPDRS: ${context.parsed.y}점`;
-          }
-        }
-      }
+          label: function (context) {
+            return `UPDRS: ${context.parsed.y}점`
+          },
+        },
+      },
     },
     scales: {
-      x: { 
+      x: {
         ticks: { color: '#000', font: { size: 12 } },
-        grid: { color: '#00000015' }
+        grid: { color: '#00000015' },
       },
       y: {
         min: 0,
@@ -116,8 +138,8 @@ export default function WeeklyReport() {
           display: true,
           text: '점수',
           color: '#000',
-          font: { size: 13, weight: 'bold' }
-        }
+          font: { size: 13, weight: 'bold' },
+        },
       },
     },
   }
@@ -126,63 +148,62 @@ export default function WeeklyReport() {
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
-      legend: { 
+      legend: {
         labels: { color: '#000', font: { size: 14 } },
         position: 'top',
       },
       title: { display: false },
       tooltip: {
         callbacks: {
-          label: function(context) {
-            const side = context.dataset.label;
-            const value = context.parsed.y;
-            return `${side}: ${value > 0 ? '+' : ''}${value}°`;
-          }
-        }
-      }
+          label: function (context) {
+            const side = context.dataset.label
+            const value = context.parsed.y
+            return `${side}: ${value > 0 ? '+' : ''}${value}°`
+          },
+        },
+      },
     },
     scales: {
-      x: { 
+      x: {
         ticks: { color: '#000', font: { size: 12 } },
-        grid: { color: '#00000015' }
+        grid: { color: '#00000015' },
       },
       y: {
         min: -4,
         max: 4,
-        ticks: { 
-          stepSize: 1, 
-          color: '#000', 
+        ticks: {
+          stepSize: 1,
+          color: '#000',
           font: { size: 12 },
-          callback: function(value) {
-            return value > 0 ? `+${value}°` : `${value}°`;
-          }
+          callback: function (value) {
+            return value > 0 ? `+${value}°` : `${value}°`
+          },
         },
         grid: { color: '#00000015' },
         title: {
           display: true,
           text: '편향각 (°)',
           color: '#000',
-          font: { size: 13, weight: 'bold' }
-        }
+          font: { size: 13, weight: 'bold' },
+        },
       },
     },
   }
 
   return (
     <div className="relative w-full pt-12 px-4">
-  
-      <h1 className="text-[2.3rem] font-bold text-primary-400 text-center mb-10">
+      <h1 className="text-[2.3rem] font-bold text-primary-600 text-center mb-10">
         주간 보고서
       </h1>
       <div className="space-y-8 max-w-5xl mx-auto">
-
-        {/* UPDRS Score Chart */}
+        {/* UPDRS 점수 차트 */}
         <div className="w-full">
           <h2 className="text-xl font-semibold text-white text-center mb-3">
             UPDRS 점수 추이
           </h2>
           <p className="text-mi text-white-600 text-center mb-4">
-            파킨슨병 통합평가척도 <br/> (Unified Parkinson's Disease Rating Scale)
+            파킨슨병 통합평가척도 <br /> (Unified Parkinson's Disease Rating
+            Scale)
           </p>
           <div className="w-full h-[280px] bg-primary-400 mx-auto flex items-center justify-center rounded-[20px] p-4">
             <div className="w-full h-full">
@@ -190,8 +211,7 @@ export default function WeeklyReport() {
             </div>
           </div>
         </div>
-
-        {/* Gait Bias Angle Chart */}
+        {/* 보행각 점수 차트 */}
         <div className="w-full">
           <h2 className="text-xl font-semibold text-white text-center mb-3">
             보행 편향각 분석
