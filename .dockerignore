@@ -1,0 +1,55 @@
+node_modules
+dist
+build
+
+.vite
+vite.config.js.timestamp-*
+
+# PWA 관련 (빌드시 재생성)
+public/sw.js
+public/workbox-*.js
+public/manifest.json
+
+# 개발 관련
+.git
+.gitignore
+README.md
+.env.local
+.env.development
+.env.test
+
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+.DS_Store
+Thumbs.db
+
+# 로그 파일
+logs
+*.log
+pnpm-debug.log*
+
+# 테스트 관련
+coverage
+.nyc_output
+.jest
+
+# 임시 파일
+.tmp
+.temp
+
+# Docker 관련
+Dockerfile
+.dockerignore
+docker-compose.yml
+
+# CI/CD 관련
+.github
+.gitlab-ci.yml
+.travis.yml
+
+node_modules/.vite
+.eslintcache
