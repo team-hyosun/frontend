@@ -1,11 +1,19 @@
+// 테스트 전용 msw 서버
 import { HttpResponse, http } from 'msw'
 import { setupServer } from 'msw/node'
 
-const ok = p => HttpResponse.json(p)
-const fail = (m = 'mock error', status = 500) =>
-  HttpResponse.json({ message: m }, { status })
+/* -------------------------------------------------------------------------- */
+/* ✅ 공용 유틸                                                                */
+/* -------------------------------------------------------------------------- */
+const ok = payload => HttpResponse.json(payload)
+const fail = (message = 'mock error', status = 500) =>
+  HttpResponse.json({ message }, { status })
 
-const MOCK_ID = 'mock-abc12345'
+export const MOCK_ID = 'mock-abc12345'
+
+/* -------------------------------------------------------------------------- */
+/* ✅ Video 핸들러                                                     */
+/* -------------------------------------------------------------------------- */
 
 // ✅ 성공 핸들러 (고정된 mock id와 데이터)
 export const handlersSuccess = [
@@ -36,8 +44,36 @@ export const handlersServerFail = [
   http.get('/api/result/:id', () => fail('서버 오류', 500)),
 ]
 
-// MSW 서버
-export const server = setupServer(...handlersSuccess)
+/* -------------------------------------------------------------------------- */
+/* ✅ Auth 핸들러                                                              */
+/* -------------------------------------------------------------------------- */
+export const handlersAuth = [
+  // 로그인 성공 (간단히 토큰 반환)
+  http.post('/api/auth/login', async ({ request }) => {
+    const body = await request.json()
+    if (body.email === 'test@example.com' && body.password === '1234') {
+      return ok({ accessToken: 'mock-access', refreshToken: 'mock-refresh' })
+    }
+    return fail('Invalid credentials', 401)
+  }),
 
-// id를 공유하려면 여기서 export
-export { MOCK_ID }
+  // 로그아웃
+  http.post('/api/auth/logout', () => ok({ success: true })),
+
+  // 현재 사용자 조회
+  http.get('/api/auth/me', () =>
+    ok({
+      id: 'user-1',
+      name: 'Mock User',
+      email: 'test@example.com',
+    })
+  ),
+]
+
+/* -------------------------------------------------------------------------- */
+/* 🚀 MSW 서버                                                                 */
+/* -------------------------------------------------------------------------- */
+export const server = setupServer(
+  ...handlersAuth, // ✅ Auth 기본 세팅
+  ...handlersSuccess // ✅ Video 기본 성공 세팅
+)

@@ -1,3 +1,34 @@
+const AT_KEY = 'AT'
+
+function safeGetStorage() {
+  try {
+    // SSR/웹뷰/프라이빗모드 대응
+    if (typeof window === 'undefined' || !window.sessionStorage) return null
+    return window.sessionStorage
+  } catch {
+    return null
+  }
+}
+
+export const getAT = () => {
+  const s = safeGetStorage()
+  return s ? s.getItem(AT_KEY) : null
+}
+
+export const setAT = t => {
+  const s = safeGetStorage()
+  if (!s) return
+  if (t) s.setItem(AT_KEY, t)
+  else s.removeItem(AT_KEY)
+}
+
+export const clearAT = () => {
+  const s = safeGetStorage()
+  if (!s) return
+  s.removeItem(AT_KEY)
+}
+
+// -------------------------------------------result
 const KEY = id => `result-${id}`
 const TTL_MS = 1000 * 60 * 10 // 10분
 
@@ -17,6 +48,8 @@ function fnv1a32(str) {
  * @returns {{ data: any, ts: number, fresh: boolean } | null}
  */
 export function getSessionResult(id) {
+  const s = safeGetStorage()
+  if (!s) return null
   try {
     const raw = sessionStorage.getItem(KEY(id))
     if (!raw) {
@@ -58,6 +91,8 @@ export function getSessionResult(id) {
  * @param {any} data
  */
 export function setSessionResult(id, data) {
+  const s = safeGetStorage()
+  if (!s) return null
   try {
     const json = JSON.stringify(data)
     const payload = { _ts: Date.now(), data, _chk: fnv1a32(json) }
@@ -73,6 +108,8 @@ export function setSessionResult(id, data) {
  * @param {string} id
  */
 export function clearSessionResult(id) {
+  const s = safeGetStorage()
+  if (!s) return null
   try {
     sessionStorage.removeItem(KEY(id))
     console.log(`[SessionResultStore] 🗑️ clear ${id}`)

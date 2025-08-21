@@ -1,10 +1,9 @@
 import { RouterProvider, createMemoryRouter } from 'react-router-dom'
 
-import { render, screen, waitFor } from '@testing-library/react'
+import { render, screen } from '@testing-library/react'
 import { HttpResponse, http } from 'msw'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
-
-import { saveVideoTemp } from '@/libs/videoTempStore'
+import { beforeEach } from 'vitest'
 
 import { routesConfig } from '../src/routers/router'
 import { handlersServerFail, server } from './msw.server'
@@ -12,6 +11,17 @@ import { handlersServerFail, server } from './msw.server'
 // 공통 mock id
 const MOCK_ID = 'mock-abc12345'
 // msw 서버 라이프사이클
+beforeEach(() => {
+  // 가드 통과 조건 세팅
+  localStorage.setItem('remember', '1') // remember ON
+  sessionStorage.setItem('AT', 'test.at') // AT 주입 (가드가 바로 통과)
+  // 혹시 첫 API에서 401 → 인터셉터가 /auth/reissue 부를 수 있으니 성공 핸들러도 보강
+  server.use(
+    http.post('*/api/auth/reissue', () =>
+      HttpResponse.json({ payload: { accessToken: 'test.at.refreshed' } })
+    )
+  )
+})
 beforeAll(() => server.listen())
 afterEach(() => server.resetHandlers())
 afterAll(() => server.close())
