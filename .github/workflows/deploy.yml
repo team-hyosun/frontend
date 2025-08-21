@@ -1,0 +1,38 @@
+name: Deploy Frontend Production
+
+on:
+  push:
+    branches: ['master']
+  workflow_dispatch: {}
+
+jobs:
+  deploy-frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # 서버로 소스 업로드 (/opt/pks/frontend)
+      - name: Copy project to EC2 (/opt/pks/frontend)
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.PROD_EC2_HOST }}
+          username: ${{ secrets.PROD_EC2_USER }}
+          key: ${{ secrets.PROD_EC2_KEY }}
+          source: '.'
+          target: '/opt/pks/frontend'
+          strip_components: 0
+          overwrite: true
+
+      # 서버에서 빌드 & 재시작
+      - name: Build & restart frontend on EC2
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.PROD_EC2_HOST }}
+          username: ${{ secrets.PROD_EC2_USER }}
+          key: ${{ secrets.PROD_EC2_KEY }}
+          script: |
+            cd /opt/pks/frontend
+            docker-compose down
+            docker-compose build
+            docker-compose up -d
+            docker image prune -f
