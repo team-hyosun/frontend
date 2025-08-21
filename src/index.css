@@ -1,141 +1,126 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 
 @theme {
-    /* 디자인 */
-    /* --color-primary-100: oklch(0.950 0.100 156.9);
-    --color-primary-300: oklch(0.900 0.160 156.9);
-    --color-primary-500: oklch(0.867 0.207 156.9);
-    --color-primary-700: oklch(0.740 0.200 156.9);
-    --color-primary-900: oklch(0.600 0.180 156.9); */
+  /* blue base */
+  --color-primary-100: #eaf6fd;
+  --color-primary-200: #cbe8fa;
+  --color-primary-300: #a9d9f6;
+  --color-primary-400: #86caf2;
+  --color-primary-500: #64b6ef;
+  --color-primary-600: #4a9cd5;
+  --color-primary-700: #3682b7;
+  --color-primary-800: #276896;
+  --color-primary-900: #194a6a;
 
-    /* green base */
-    /* --color-primary-100: oklch(0.94 0.05 178);
-    --color-primary-200: oklch(0.91 0.07 178);
-    --color-primary-300: oklch(0.88 0.09 178);
-    --color-primary-400: oklch(0.80 0.10 178);
-    --color-primary-500: oklch(0.72 0.11 178);
-    --color-primary-700: oklch(0.58 0.13 178);
-    --color-primary-900: oklch(0.42 0.15 178); */
+  --color-bg: oklch(0.16 0 260);
 
-    /* blue base */
-    --color-primary-100: #EAF6FD;
-    --color-primary-200: #CBE8FA;
-    --color-primary-300: #A9D9F6;
-    --color-primary-400: #86CAF2;
-    --color-primary-500: #64B6EF;
-    --color-primary-600: #4A9CD5;
-    --color-primary-700: #3682B7;
-    --color-primary-800: #276896;
-    --color-primary-900: #194A6A;
+  /* 화이트 */
+  --color-white-100: oklch(1 0 0);
+  --color-white-200: oklch(0.985 0 0);
+  --color-white-300: oklch(0.97 0 0);
+  --color-white-400: oklch(0.945 0 0);
+  --color-white-500: oklch(0.92 0 0);
+  --color-white-600: oklch(0.89 0 0);
+  --color-white-700: oklch(0.86 0 0);
+  --color-white-800: oklch(0.83 0 0);
+  --color-white-900: oklch(0.8 0 0);
 
-
-
-    --color-bg: oklch(0.16 0 260);
-
-    /* 화이트 */
-    --color-white-100: oklch(1.00 0 0);
-    --color-white-200: oklch(0.985 0 0);
-    --color-white-300: oklch(0.97 0 0);
-    --color-white-400: oklch(0.945 0 0);
-    --color-white-500: oklch(0.92 0 0);
-    --color-white-600: oklch(0.89 0 0);
-    --color-white-700: oklch(0.86 0 0);
-    --color-white-800: oklch(0.83 0 0);
-    --color-white-900: oklch(0.80 0 0);
-
-    /* 블랙 */
-    --color-black-100: oklch(0.85 0 0);
-    --color-black-200: oklch(0.725 0 0);
-    --color-black-300: oklch(0.60 0 0);
-    --color-black-400: oklch(0.50 0 0);
-    --color-black-500: oklch(0.40 0 0);
-    --color-black-600: oklch(0.30 0 0);
-    --color-black-700: oklch(0.20 0 0);
-    --color-black-800: oklch(0.14 0 0);
-    --color-black-900: oklch(0.08 0 0);
+  /* 블랙 */
+  --color-black-100: oklch(0.85 0 0);
+  --color-black-200: oklch(0.725 0 0);
+  --color-black-300: oklch(0.6 0 0);
+  --color-black-400: oklch(0.5 0 0);
+  --color-black-500: oklch(0.4 0 0);
+  --color-black-600: oklch(0.3 0 0);
+  --color-black-700: oklch(0.2 0 0);
+  --color-black-800: oklch(0.14 0 0);
+  --color-black-900: oklch(0.08 0 0);
 }
 
 @layer base {
-    html {
-        /* 1rem = 16px */
-        /* font-size: 100%; */
-        font-size: 100%;
-        @apply antialiased;
-    }
-    body {
-        @apply bg-bg text-white-100 leading-relaxed;
-    }
+  html {
+    /* 1rem = 16px */
+    /* font-size: 100%; */
+    font-size: 100%;
+    @apply antialiased;
+  }
+  body {
+    @apply bg-bg text-white-100 leading-relaxed;
+    -ms-overflow-style: none; /* IE and Edge */
+    scrollbar-width: none; /* Firefox */
+  }
+  body::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Opera*/
+  }
 
-    h1 {
-        /* 24px */
-        @apply text-[1.5rem] font-bold;
-    }
-    h2 {
-        /* 20px */
-        @apply text-[1.25rem] font-semibold;
-    }
-    button {
-        /* 18px */
-        @apply text-[1.125rem] font-medium;
-    }
+  h1 {
+    /* 24px */
+    @apply text-[1.5rem] font-bold;
+  }
+  h2 {
+    /* 20px */
+    @apply text-[1.25rem] font-semibold;
+  }
+  button {
+    /* 18px */
+    @apply text-[1.125rem] font-medium;
+  }
 }
 
 @layer components {
+  .action-card-base {
+    @apply p-5 w-full rounded-3xl text-left border transition-all duration-200 cursor-pointer;
+  }
 
-    .action-card-base {
-        @apply p-5 w-full rounded-3xl text-left border transition-all duration-200 cursor-pointer;
-    }
+  .action-card-base:disabled {
+    @apply opacity-50 cursor-not-allowed;
+  }
 
-    .action-card-base:disabled {
-        @apply opacity-50 cursor-not-allowed;
-    }
+  .action-card-primary {
+    @apply bg-primary-500 text-black border-transparent;
+  }
 
-    .action-card-primary {
-        @apply bg-primary-500 text-black border-transparent;
-    }
+  .action-card-primary .action-card-subtitle {
+    @apply text-black/70;
+  }
 
-    .action-card-primary .action-card-subtitle {
-        @apply text-black/70;
-    }
+  .action-card-primary .action-card-icon {
+    @apply bg-primary-600;
+  }
 
-    .action-card-primary .action-card-icon {
-        @apply bg-primary-600;
-    }
+  .action-card-secondary {
+    @apply bg-black-700 text-white border-black-500;
+  }
 
-    .action-card-secondary {
-        @apply bg-black-700 text-white border-black-500;
-    }
+  .action-card-secondary .action-card-subtitle {
+    @apply text-white/70;
+  }
 
-    .action-card-secondary .action-card-subtitle {
-        @apply text-white/70;
-    }
+  .action-card-secondary .action-card-icon {
+    @apply bg-white/10;
+  }
 
-    .action-card-secondary .action-card-icon {
-        @apply bg-white/10;
-    }
+  .action-card-icon {
+    @apply size-10 rounded-2xl grid place-items-center flex-shrink-0;
+  }
 
-    .action-card-icon {
-        @apply size-10 rounded-2xl grid place-items-center flex-shrink-0;
-    }
+  .action-card-title {
+    @apply text-base font-medium leading-tight mb-1;
+  }
 
-    .action-card-title {
-        @apply text-base font-medium leading-tight mb-1;
-    }
+  .action-card-subtitle {
+    @apply text-sm;
+  }
 
-    .action-card-subtitle {
-        @apply text-sm;
-    }
+  .action-button-base {
+    @apply py-4 inline-flex items-center justify-center gap-2 rounded-xl text-sm font-medium flex-1 border transition-all duration-200 cursor-pointer;
+  }
 
-    .action-button-base {
-        @apply py-4 inline-flex items-center justify-center gap-2 rounded-xl text-sm font-medium flex-1 border transition-all duration-200 cursor-pointer;
-    }
+  .action-button-primary {
+    @apply bg-primary-500 text-black border-transparent;
+  }
 
-    .action-button-primary {
-        @apply bg-primary-500 text-black border-transparent;
-    }
-
-    .action-button-secondary {
-        @apply bg-black-700 text-white border-black-500;
-    }
-
+  .action-button-secondary {
+    @apply bg-black-700 text-white border-black-500;
+  }
 }

@@ -6,6 +6,7 @@ import { TITLES as T } from '@/constant/routeMeta'
 
 import Layout from '../components/Layout'
 import authRouter from './authRouter'
+import { guardLoader, rootLoader } from './loaders'
 import testRoutes from './testRoutes'
 import videoRouter from './videoRouter'
 
@@ -30,45 +31,59 @@ function Root() {
     </Suspense>
   )
 }
+function ProtectedGate() {
+  return <Outlet />
+}
+
 export const routesConfig = [
   {
     path: '/',
     element: <Root />,
+    loader: rootLoader, // ★ remember=1 이면 부팅 시 1회 refresh (리다이렉트 없음)
     children: [
       {
         element: <BoundaryOutlet />,
         errorElement: <ErrorBoundaryPage />,
         children: [
-          { index: true, element: <HomePage /> },
-          { path: 'auth', children: authRouter },
+          { path: 'auth', children: authRouter }, // public
           {
-            path: 'video',
-            children: videoRouter,
-            handle: { title: T['/video'] },
+            element: <ProtectedGate />,
+            loader: guardLoader,
+            children: [
+              { index: true, element: <HomePage /> },
+
+              {
+                path: 'video',
+                children: videoRouter,
+                handle: { title: T['/video'] },
+              },
+              {
+                path: 'medication',
+                element: <MedicationPage />,
+                handle: { title: T['/medication'] },
+              },
+              {
+                path: 'report',
+                element: <ReportPage />,
+                handle: { title: T['/report'] },
+              },
+              {
+                path: 'history',
+                element: <HistoryPage />,
+                handle: { title: T['/history'] },
+              },
+
+              ...testRoutes,
+            ],
           },
-          {
-            path: 'medication',
-            element: <MedicationPage />,
-            handle: { title: T['/medication'] },
-          },
-          {
-            path: 'report',
-            element: <ReportPage />,
-            handle: { title: T['/report'] },
-          },
-          {
-            path: 'history',
-            element: <HistoryPage />,
-            handle: { title: T['/history'] },
-          },
-          ...testRoutes,
+
+          // ---- 404 (공개/보호 어디에도 못 들어간 나머지) ----
           { path: '*', element: <NotFoundPage /> },
         ],
       },
     ],
   },
 ]
-
 // 앱에서 쓰는 건 기존처럼 router
 const router = createBrowserRouter(routesConfig)
 export default router
