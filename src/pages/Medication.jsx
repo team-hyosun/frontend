@@ -116,7 +116,7 @@ export default function Medication() {
       />
 
       <button
-        className="mt-7 w-[90%] h-12 bg-primary-600 text-black text-lg font-bold border-none rounded-[20px] cursor-pointer hover:bg-primary-500 transition-colors"
+        className="mt-7 w-[90%] h-12 bg-primary-600 text-black text-lg font-bold border-none rounded-[20px] cursor-pointer hover:bg-primary-700 transition-colors"
         onClick={handleSave}
         disabled={disabled}
       >
