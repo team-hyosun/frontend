@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import { useRef } from 'react'
+import toast from 'react-hot-toast'
 import {
   AiOutlineCamera,
   AiOutlineCloudUpload,
@@ -46,7 +47,7 @@ export default function VideoGuide() {
       openPicker(true)
     } else {
       // 데스크탑 웹 → 카메라 없음 안내
-      alert(
+      toast(
         '데스크탑에서는 카메라 촬영이 지원되지 않습니다. 모바일 기기에서 이용해주세요.'
       )
     }
@@ -56,7 +57,7 @@ export default function VideoGuide() {
     if (!f) return
     const v = validateVideoFile(f, { maxSizeMB: 100 })
     if (!v.ok) {
-      alert(
+      toast(
         v.reason === 'NOT_VIDEO'
           ? '동영상만 업로드 가능해요.'
           : '파일이 너무 큽니다.'

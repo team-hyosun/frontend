@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import toast from 'react-hot-toast'
 import { HiOutlineMail } from 'react-icons/hi'
 import { IoEyeOffOutline, IoEyeOutline } from 'react-icons/io5'
 import { RiLock2Line } from 'react-icons/ri'
@@ -23,7 +24,7 @@ export default function LoginPage() {
       localStorage.setItem('remember', remember ? '1' : '0')
       navigate('/', { replace: true })
     } catch (e) {
-      // TODO: 에러 표시
+      toast.error('로그인 실패! 다시 시도해주세요.')
       console.error(e)
     }
   }

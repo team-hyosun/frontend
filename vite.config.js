@@ -4,12 +4,14 @@ import path from 'path'
 import { defineConfig } from 'vite'
 import mkcert from 'vite-plugin-mkcert'
 import { VitePWA } from 'vite-plugin-pwa'
+import removeConsole from 'vite-plugin-remove-console'
 
 export default defineConfig({
   plugins: [
     tailwindcss(),
     react(),
     mkcert(),
+    removeConsole(),
 
     VitePWA({
       registerType: 'autoUpdate',
@@ -26,12 +28,12 @@ export default defineConfig({
         start_url: '/',
         icons: [
           {
-            src: 'logo-192x192.png',
+            src: 'parkin-192.png',
             sizes: '192x192',
             type: 'image/png',
           },
           {
-            src: 'logo-512x512.png',
+            src: 'parkin-512.png',
             sizes: '512x512',
             type: 'image/png',
           },

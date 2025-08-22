@@ -21,9 +21,15 @@ export default function VideoResult() {
     queryClient.getQueryData([...QUERY_KEY_TODAY_RESULT, String(id)]) ?? null
 
   // 우선순위: 세션 → RQ 캐시
-  const result = sessionData ?? rqCached
+  const result = sessionData?.data ?? rqCached ?? null
 
-  const { leftTiltAngle, rightTiltAngle, weeklyUpdrsScore } = result
+  // 가드
+  const {
+    leftTiltAngle = 0,
+    rightTiltAngle = 0,
+    weeklyUpdrsScore = 0,
+  } = result ?? {}
+
   const angles = analyzeAngles(leftTiltAngle, rightTiltAngle)
 
   return (
@@ -92,12 +98,6 @@ function ResultSection({ angles, weeklyUpdrsScore }) {
             <span className="text-4xl text-primary-200/30 font-bold">"</span>
           </p>
         </header>
-        {/* 
-        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-primary-500/20 to-primary-300/20 backdrop-blur border border-primary-400/30">
-          <FaMedal className="w-4 h-4 text-yellow-300" aria-hidden="true" />
-          <span className="text-white font-medium">꾸준함 배지 +1</span>
-        </div> */}
-
         <AnalysisSummary angles={angles} />
       </div>
     </section>
