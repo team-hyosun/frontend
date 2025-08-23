@@ -5,34 +5,65 @@ on:
     branches: ['master']
   workflow_dispatch: {}
 
+concurrency:
+  group: deploy-frontend-prod
+  cancel-in-progress: true
+
 jobs:
   deploy-frontend:
     runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
 
-      # 서버로 소스 업로드 (/opt/pks/frontend)
-      - name: Copy project to EC2 (/opt/pks/frontend)
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Upload project to EC2
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.PROD_EC2_HOST }}
           username: ${{ secrets.PROD_EC2_USER }}
           key: ${{ secrets.PROD_EC2_KEY }}
-          source: '.'
-          target: '/opt/pks/frontend'
-          strip_components: 0
+          fingerprint: ${{ secrets.PROD_EC2_FINGERPRINT }}   # 권장: 호스트키 고정
+          source: "."                                        # 레포 전체
+          target: "/opt/pks/frontend"                        # 서버 작업 디렉터리
           overwrite: true
+          strip_components: 0
+          debug: true
+          timeout: 120
+          command_timeout: 120
 
-      # 서버에서 빌드 & 재시작
-      - name: Build & restart frontend on EC2
+      # 서버에서 재빌드/재기동 (다운 없이 up --build로 최소화)
+      - name: Rebuild & restart containers
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.PROD_EC2_HOST }}
           username: ${{ secrets.PROD_EC2_USER }}
           key: ${{ secrets.PROD_EC2_KEY }}
+          fingerprint: ${{ secrets.PROD_EC2_FINGERPRINT }}
+          script_stop: true
           script: |
+            set -euo pipefail
             cd /opt/pks/frontend
-            docker compose down
-            docker compose build
-            docker compose up -d
+            # (옵션) 환경파일이 필요하면 여기서 안전하게 주입
+            # printenv | grep '^VITE_' > .env.production
+
+            docker compose up -d --build --remove-orphans
             docker image prune -f
+
+      # (선택) 헬스체크: 200 응답 확인
+      - name: Health check
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.PROD_EC2_HOST }}
+          username: ${{ secrets.PROD_EC2_USER }}
+          key: ${{ secrets.PROD_EC2_KEY }}
+          fingerprint: ${{ secrets.PROD_EC2_FINGERPRINT }}
+          script_stop: true
+          script: |
+            set -euo pipefail
+            code=$(curl -sS -o /dev/null -w '%{http_code}' https://parkincare.com)
+            if [ "$code" != "200" ] && [ "$code" != "304" ]; then
+              echo "Unexpected status: $code"
+              exit 1
+            fi
+            echo "OK ($code)"
