@@ -29,8 +29,8 @@ jobs:
           overwrite: true
           strip_components: 0
           debug: true
-          timeout: 120
-          command_timeout: 120
+          timeout: 120s
+          command_timeout: 120s
 
       # 서버에서 재빌드/재기동 (다운 없이 up --build로 최소화)
       - name: Rebuild & restart containers
