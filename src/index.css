@@ -65,6 +65,11 @@
     /* 18px */
     @apply text-[1.125rem] font-medium;
   }
+
+  input[type='date']::-webkit-calendar-picker-indicator {
+    filter: invert(1);
+    cursor: pointer;
+  }
 }
 
 @layer components {
