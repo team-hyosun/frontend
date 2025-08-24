@@ -1,5 +1,4 @@
 name: Deploy Frontend Production
-
 on:
   push:
     branches: ['master']
@@ -12,7 +11,6 @@ concurrency:
 jobs:
   deploy-frontend:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -23,47 +21,76 @@ jobs:
           host: ${{ secrets.PROD_EC2_HOST }}
           username: ${{ secrets.PROD_EC2_USER }}
           key: ${{ secrets.PROD_EC2_KEY }}
-          fingerprint: ${{ secrets.PROD_EC2_FINGERPRINT }}   # 권장: 호스트키 고정
-          source: "."                                        # 레포 전체
-          target: "/opt/pks/frontend"                        # 서버 작업 디렉터리
+          source: '.'
+          target: '/opt/pks/frontend'
           overwrite: true
           strip_components: 0
           debug: true
           timeout: 120s
           command_timeout: 120s
 
-      # 서버에서 재빌드/재기동 (다운 없이 up --build로 최소화)
-      - name: Rebuild & restart containers
+      - name: Deploy with Blue-Green Strategy
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.PROD_EC2_HOST }}
           username: ${{ secrets.PROD_EC2_USER }}
           key: ${{ secrets.PROD_EC2_KEY }}
-          fingerprint: ${{ secrets.PROD_EC2_FINGERPRINT }}
           script_stop: true
           script: |
             set -euo pipefail
             cd /opt/pks/frontend
-            # (옵션) 환경파일이 필요하면 여기서 안전하게 주입
-            # printenv | grep '^VITE_' > .env.production
 
-            docker compose up -d --build --remove-orphans
+            # 스크립트 실행 권한 부여
+            chmod +x deploy-blue-green.sh
+
+            # 블루-그린 배포 실행
+            ./deploy-blue-green.sh
+
+            # 사용하지 않는 Docker 이미지 정리
             docker image prune -f
 
-      # (선택) 헬스체크: 200 응답 확인
-      - name: Health check
+            echo "🎉 Blue-Green deployment completed successfully!"
+
+      - name: Final Health Check
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.PROD_EC2_HOST }}
           username: ${{ secrets.PROD_EC2_USER }}
           key: ${{ secrets.PROD_EC2_KEY }}
-          fingerprint: ${{ secrets.PROD_EC2_FINGERPRINT }}
           script_stop: true
           script: |
             set -euo pipefail
-            code=$(curl -sS -o /dev/null -w '%{http_code}' https://parkincare.com)
-            if [ "$code" != "200" ] && [ "$code" != "304" ]; then
-              echo "Unexpected status: $code"
-              exit 1
+
+            # 웹사이트 최종 응답 확인
+            echo "🌐 Final website health check..."
+
+            for i in {1..5}; do
+              code=$(curl -sS -o /dev/null -w '%{http_code}' https://parkincare.com)
+              if [ "$code" = "200" ] || [ "$code" = "304" ]; then
+                echo "✅ Health check passed: HTTP $code (attempt $i/5)"
+                break
+              elif [ $i -eq 5 ]; then
+                echo "❌ Health check failed: HTTP $code after 5 attempts"
+                exit 1
+              else
+                echo "⏳ Health check attempt $i/5: HTTP $code, retrying in 3s..."
+                sleep 3
+              fi
+            done
+
+            # 현재 활성 환경 확인
+            ACTIVE_PORT=$(sudo nginx -T 2>/dev/null | grep "server 127.0.0.1:300[12]" | grep -o "300[12]" || echo "unknown")
+            if [ "$ACTIVE_PORT" = "3001" ]; then
+              ACTIVE_ENV="BLUE"
+            elif [ "$ACTIVE_PORT" = "3002" ]; then
+              ACTIVE_ENV="GREEN"  
+            else
+              ACTIVE_ENV="UNKNOWN"
             fi
-            echo "OK ($code)"
+
+            echo "📊 Deployment Summary:"
+            echo "   - Website Status: ✅ Healthy (HTTP $code)"
+            echo "   - Active Environment: $ACTIVE_ENV (port $ACTIVE_PORT)"
+            echo "   - Deployment Time: $(date)"
+            echo ""
+            echo "🚀 Deployment completed successfully!"

@@ -1,18 +1,32 @@
 version: '3.8'
 
 services:
-  frontend:
-    container_name: frontend-app
+  frontend-blue:
+    container_name: frontend-blue
     build:
       context: .
       dockerfile: Dockerfile
     ports:
-      - '3000:80'
+      - '3001:80'
     environment:
       - NODE_ENV=production
     networks:
       - pks-net
     restart: unless-stopped
+
+  frontend-green:
+    container_name: frontend-green
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - '3002:80'
+    environment:
+      - NODE_ENV=production
+    networks:
+      - pks-net
+    restart: unless-stopped
+    profiles: ['inactive']
 
 networks:
   pks-net:
