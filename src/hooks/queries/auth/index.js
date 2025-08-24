@@ -2,7 +2,7 @@ import { useQueryClient } from '@tanstack/react-query'
 
 import { clearAT, setAT } from '@/libs/sessionStore'
 
-import { useApiMutation } from '../common'
+import { useApiMutation, useApiQuery } from '../common'
 
 export function useLoginMutation() {
   return useApiMutation(
@@ -44,5 +44,18 @@ export function useSignupMutation() {
     'post',
     {},
     false // 인증 불필요
+  )
+}
+export function useUserMeQuery() {
+  return useApiQuery(
+    ['user', 'me'],
+    '/user/me',
+    {
+      select: data => data?.payload,
+      retry: false, // 인증 실패시 재시도 막기
+      staleTime: 5 * 60 * 1000,
+      gcTime: 10 * 60 * 1000,
+    },
+    true // requireAuth
   )
 }

@@ -8,11 +8,14 @@ import { FiLogOut } from 'react-icons/fi'
 import { Link, useNavigate } from 'react-router-dom'
 
 import notify from '@/components/ui/notify'
-import { useLogoutMutation } from '@/hooks/queries/auth'
-import { getLocalUserName } from '@/libs/localStore'
+import { useLogoutMutation, useUserMeQuery } from '@/hooks/queries/auth'
+
+// import { getLocalUserName } from '@/libs/localStore'
 
 export default function Home() {
-  const userName = getLocalUserName()
+  // const userName = getLocalUserName()
+  const { data: name } = useUserMeQuery()
+  const userName = name || '홍길동'
 
   const navigate = useNavigate()
   const logout = useLogoutMutation()
