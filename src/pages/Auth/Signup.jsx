@@ -49,6 +49,7 @@ export default function SignupPage() {
         loginId: form.id,
         password: form.password,
         gender: form.gender.toUpperCase(), // 'male' → 'MALE', 'female' → 'FEMALE'
+        name: form.name,
       }
 
       await signupMutation.mutateAsync(payload)
