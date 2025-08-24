@@ -1,16 +1,16 @@
-import { RouterProvider } from 'react-router-dom'
+import { Toaster } from 'react-hot-toast'
+import { RouterProvider, createBrowserRouter } from 'react-router-dom'
 
-import QueryProvider from './components/QueryProvider'
-import router, { loading } from './routers/router'
+import QueryProvider from '@/components/QueryProvider'
+import { loading, routesConfig } from '@/routers/router'
 
-function App() {
+const router = createBrowserRouter(routesConfig)
+
+export default function App() {
   return (
-    <>
-      <QueryProvider>
-        <RouterProvider router={router} fallbackElement={loading} />
-      </QueryProvider>
-    </>
+    <QueryProvider>
+      <Toaster position="top-center" reverseOrder={false} />
+      <RouterProvider router={router} fallbackElement={loading} />
+    </QueryProvider>
   )
 }
-
-export default App

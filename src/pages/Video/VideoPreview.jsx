@@ -1,3 +1,4 @@
+import toast from 'react-hot-toast'
 import {
   AiOutlineCheckCircle,
   AiOutlineExclamationCircle,
@@ -23,7 +24,7 @@ export default function VideoPreviewPage() {
 
   const handleUpload = async () => {
     if (!file) {
-      alert('업로드할 영상이 없습니다.')
+      toast('업로드할 영상이 없습니다.')
       return
     }
     try {

@@ -1,10 +1,10 @@
 import { Suspense, lazy } from 'react'
-import { Outlet, createBrowserRouter } from 'react-router-dom'
+import { Outlet } from 'react-router-dom'
 
+import Layout from '@/components/Layout'
 import Spinner from '@/components/Spinner'
 import { TITLES as T } from '@/constant/routeMeta'
 
-import Layout from '../components/Layout'
 import authRouter from './authRouter'
 import { guardLoader, rootLoader } from './loaders'
 import testRoutes from './testRoutes'
@@ -19,9 +19,6 @@ const HistoryPage = lazy(() => import('@/pages/History'))
 const NotFoundPage = lazy(() => import('@/pages/NotFound'))
 const ErrorBoundaryPage = lazy(() => import('@/pages/ErrorBoundary'))
 
-function BoundaryOutlet() {
-  return <Outlet />
-}
 function Root() {
   return (
     <Suspense fallback={loading}>
@@ -31,24 +28,28 @@ function Root() {
     </Suspense>
   )
 }
-function ProtectedGate() {
-  return <Outlet />
-}
+
+const ErrorBoundaryElement = (
+  <Suspense fallback={loading}>
+    <ErrorBoundaryPage />
+  </Suspense>
+)
 
 export const routesConfig = [
   {
     path: '/',
     element: <Root />,
-    loader: rootLoader, // ★ remember=1 이면 부팅 시 1회 refresh (리다이렉트 없음)
+    loader: rootLoader, // remember=1이면 부팅 시 1회 refresh (리다이렉트 없음)
     children: [
       {
-        element: <BoundaryOutlet />,
-        errorElement: <ErrorBoundaryPage />,
+        element: <Outlet />,
+        errorElement: ErrorBoundaryElement,
         children: [
           { path: 'auth', children: authRouter }, // public
+
           {
-            element: <ProtectedGate />,
-            loader: guardLoader,
+            element: <Outlet />,
+            loader: guardLoader, // 보호 라우트 가드
             children: [
               { index: true, element: <HomePage /> },
 
@@ -77,13 +78,10 @@ export const routesConfig = [
             ],
           },
 
-          // ---- 404 (공개/보호 어디에도 못 들어간 나머지) ----
+          // 404
           { path: '*', element: <NotFoundPage /> },
         ],
       },
     ],
   },
 ]
-// 앱에서 쓰는 건 기존처럼 router
-const router = createBrowserRouter(routesConfig)
-export default router

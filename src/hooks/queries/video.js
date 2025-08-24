@@ -1,4 +1,5 @@
 import { useCallback, useMemo, useRef } from 'react'
+import toast from 'react-hot-toast'
 import { useNavigate } from 'react-router-dom'
 
 import { useQueryClient } from '@tanstack/react-query'
@@ -60,7 +61,7 @@ export function useUploadWalkingVideo() {
     // 1) 파일 소스: zustand -> IDB
     let fileObj = file ?? (await loadVideoTemp())
     if (!fileObj) {
-      alert('업로드할 영상 파일이 없습니다.')
+      toast.error('업로드할 영상 파일이 없습니다.')
       navigate('/video/preview', { replace: true })
       startedRef.current = false
       return
@@ -78,7 +79,7 @@ export function useUploadWalkingVideo() {
       const payload = data?.payload ?? data?.data ?? data ?? null
       const id = payload?.walkingRecordId ?? payload?.id
       if (!id) {
-        alert('응답에 결과 ID가 없습니다.')
+        toast.error('응답에 결과 ID가 없습니다.')
         navigate('/video/preview', { replace: true })
         startedRef.current = false
         return
@@ -106,7 +107,7 @@ export function useUploadWalkingVideo() {
         e?.response?.data?.message ||
         e?.message ||
         '업로드 중 오류가 발생했습니다.'
-      alert(msg)
+      toast(msg)
       navigate('/video/preview', { replace: true })
     }
     // finally {

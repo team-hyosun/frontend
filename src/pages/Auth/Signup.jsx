@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import toast from 'react-hot-toast'
 import { HiOutlineMail } from 'react-icons/hi'
 import { IoEyeOffOutline, IoEyeOutline } from 'react-icons/io5'
 import { RiCalendar2Line, RiLock2Line, RiUser3Line } from 'react-icons/ri'
@@ -51,12 +52,14 @@ export default function SignupPage() {
       }
 
       await signupMutation.mutateAsync(payload)
+      localStorage.setItem('userName', form.name)
+      toast.success('회원가입 성공! 로그인 페이지로 이동합니다.')
 
       // 회원가입 성공 후 로그인 페이지로 이동
       window.location.href = '/auth/login'
     } catch (error) {
       console.error('회원가입 실패:', error)
-      // 여기서 에러 처리 (토스트 메시지 등)
+      toast.error('회원가입 실패! 다시 시도해주세요.')
     } finally {
       setIsLoading(false)
     }

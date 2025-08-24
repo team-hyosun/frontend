@@ -7,14 +7,19 @@ import {
 import { FiLogOut } from 'react-icons/fi'
 import { Link, useNavigate } from 'react-router-dom'
 
+import notify from '@/components/ui/notify'
 import { useLogoutMutation } from '@/hooks/queries/auth'
+import { getLocalUserName } from '@/libs/localStore'
 
 export default function Home() {
-  const userName = '홍길동'
+  const userName = getLocalUserName()
+
   const navigate = useNavigate()
   const logout = useLogoutMutation()
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    const ok = await notify('정말 로그아웃하시겠습니까?')
+    if (!ok) return
     logout.mutate(undefined, {
       onSuccess: () => navigate('/auth/login', { replace: true }),
       onError: () => navigate('/auth/login', { replace: true }),
