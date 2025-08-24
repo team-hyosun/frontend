@@ -1,4 +1,3 @@
-import { useMemo } from 'react'
 import { FaChartLine, FaWalking } from 'react-icons/fa'
 import { useNavigate, useParams } from 'react-router-dom'
 
@@ -14,8 +13,7 @@ export default function VideoResult() {
   const navigate = useNavigate()
 
   // 세션 캐시 1차
-  const sessionData = useMemo(() => getSessionResult(id), [id])
-
+  const sessionData = getSessionResult(id)
   // 2) React Query 캐시 2차 복구 (네트워크 미사용, 메모리 캐시 접근)
   const rqCached =
     queryClient.getQueryData([...QUERY_KEY_TODAY_RESULT, String(id)]) ?? null

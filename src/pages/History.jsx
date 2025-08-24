@@ -56,7 +56,9 @@ export default function CalendarPage() {
           year={year}
           month={month}
           dataByDate={dataByDate}
-          onDayClick={d => console.log('셀 클릭:', d)}
+          onDayClick={d => {
+            console.log('셀 클릭:', d)
+          }}
         />
       </div>
     </div>

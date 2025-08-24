@@ -1,14 +1,9 @@
-import {
-  Outlet,
-  RouterProvider,
-  createMemoryRouter,
-  useRouteError,
-} from 'react-router-dom'
+import { Outlet, useRouteError } from 'react-router-dom'
 
-import '@testing-library/jest-dom'
-import { render, screen } from '@testing-library/react'
-import { expect } from 'vitest'
-import { it } from 'vitest'
+import { screen } from '@testing-library/react'
+import { describe, expect, it } from 'vitest'
+
+import { renderWithRouter } from './test-utils'
 
 function Layout() {
   return (
@@ -20,20 +15,23 @@ function Layout() {
     </div>
   )
 }
+
 function Boundary() {
   return <Outlet />
 }
+
 function Boom() {
   throw new Error('render-bomb')
 }
+
 function ErrorPage() {
   const e = useRouteError()
   return <div role="alert">{e?.message}</div>
 }
 
-it('레이아웃 유지 + 에러 바운더리로 본문 교체', async () => {
-  const router = createMemoryRouter(
-    [
+describe('Error Boundary', () => {
+  it('레이아웃 유지 + 에러 바운더리로 본문 교체', async () => {
+    const routes = [
       {
         path: '/',
         element: <Layout />,
@@ -45,12 +43,11 @@ it('레이아웃 유지 + 에러 바운더리로 본문 교체', async () => {
           },
         ],
       },
-    ],
-    { initialEntries: ['/boom'] }
-  )
+    ]
 
-  render(<RouterProvider router={router} />)
+    renderWithRouter(routes, ['/boom'])
 
-  expect(await screen.findByText('HEADER')).toBeInTheDocument()
-  expect(await screen.findByRole('alert')).toHaveTextContent('render-bomb')
+    expect(await screen.findByText('HEADER')).toBeInTheDocument()
+    expect(await screen.findByRole('alert')).toHaveTextContent('render-bomb')
+  })
 })
